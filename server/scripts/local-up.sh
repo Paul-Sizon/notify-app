@@ -37,10 +37,10 @@ PANE_NAMES=(postgres migrate-dev migrate-test unit integration e2e server logs)
 PANE_CWDS=("$REPO" "$REPO" "$REPO" "$REPO" "$REPO" "$REPO" "$REPO" "$REPO")
 PANE_CMDS=(
     "docker compose up postgres"
-    "$ENVPREFIX; goose -dir migrations postgres \"\$DATABASE_URL\" up && touch /tmp/notify-migrate-dev.done && echo '✓ dev DB migrated'; tail -f /dev/null"
-    "$ENVPREFIX; goose -dir migrations postgres \"\$TEST_DATABASE_URL\" up && touch /tmp/notify-migrate-test.done && echo '✓ test DB migrated'; tail -f /dev/null"
+    "$ENVPREFIX; goose -dir migrations postgres \"\$DATABASE_URL\" up && echo done > /tmp/notify-migrate-dev.done && echo '✓ dev DB migrated'; tail -f /dev/null"
+    "$ENVPREFIX; goose -dir migrations postgres \"\$TEST_DATABASE_URL\" up && echo done > /tmp/notify-migrate-test.done && echo '✓ test DB migrated'; tail -f /dev/null"
     "go test -count=1 ./...; echo '── unit done ──'; tail -f /dev/null"
-    "$ENVPREFIX; go test -tags=integration -count=1 -timeout 5m ./...; status=\$?; touch /tmp/notify-integration.done; echo \"── integration exit=\$status ──\"; tail -f /dev/null"
+    "$ENVPREFIX; go test -tags=integration -count=1 -timeout 5m ./...; status=\$?; echo done > /tmp/notify-integration.done; echo \"── integration exit=\$status ──\"; tail -f /dev/null"
     "$ENVPREFIX; go test -tags=e2e -count=1 -timeout 5m ./e2e/...; echo '── e2e done ──'; tail -f /dev/null"
     "$ENVPREFIX; go run ./cmd/server"
     "exec bash -i"
