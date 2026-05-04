@@ -57,7 +57,7 @@ func RunSubscription(ctx context.Context, deps Deps, subID uuid.UUID) ([]uuid.UU
 		if err != nil {
 			return nil, fmt.Errorf("extract events: %w", err)
 		}
-		toInsert = eventsToSignals(sub.ID, cands)
+		toInsert = eventsToSignals(sub.ID, cands, now)
 	case "news":
 		res, err := deps.Extractor.ExtractNews(ctx, in)
 		if err != nil {
@@ -124,7 +124,8 @@ func pushNewSignals(ctx context.Context, deps Deps, sub db.Subscription, token s
 	}
 }
 
-func eventsToSignals(subID uuid.UUID, cands []EventCandidate) []db.SignalInsert {
+func eventsToSignals(subID uuid.UUID, cands []EventCandidate, now time.Time) []db.SignalInsert {
+	today := now.UTC().Truncate(24 * time.Hour)
 	out := make([]db.SignalInsert, 0, len(cands))
 	for _, c := range cands {
 		date := ""
@@ -142,6 +143,10 @@ func eventsToSignals(subID uuid.UUID, cands []EventCandidate) []db.SignalInsert 
 			if t, err := time.Parse("2006-01-02", *c.Date); err == nil {
 				occurs = &t
 			}
+		}
+		// Defense in depth: drop past events even if extractor missed the rule.
+		if occurs != nil && occurs.Before(today) {
+			continue
 		}
 
 		bodyParts := []string{}

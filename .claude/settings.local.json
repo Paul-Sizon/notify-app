@@ -246,7 +246,8 @@
       "Bash(docker info *)",
       "Bash(cp /Users/paulsizon/.claude/skills/zellij-stack/local-up.sh /Users/paulsizon/development/notify/server/scripts/local-up.sh)",
       "Bash(chmod +x /Users/paulsizon/development/notify/server/scripts/local-up.sh)",
-      "Bash(bash -n /Users/paulsizon/development/notify/server/scripts/local-up.sh)"
+      "Bash(bash -n /Users/paulsizon/development/notify/server/scripts/local-up.sh)",
+      "Bash(go vet *)"
     ]
   },
   "enableAllProjectMcpServers": true,
