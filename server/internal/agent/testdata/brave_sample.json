@@ -1,0 +1,31 @@
+{
+  "parsed": {
+    "text": "The official Coldplay 'Music of The Spheres' World Tour includes the following confirmed concerts in 2026:\n\n- **May 22, 2026**: Philadelphia, PA at Lincoln Financial Field  \n- **May 25, 2026**: East Rutherford, NJ at MetLife Stadium  \n- **May 28, 2026**: Chicago, IL at Soldier Field  \n- **June 1, 2026**: Chicago, IL at Soldier Field  \n- **June 5, 2026**: Toronto, ON at Rogers Centre  \n- **July 10, 2026**: London, UK at Wembley Stadium  \n- **July 12, 2026**: London, UK at Wembley Stadium  \n- **July 15, 2026**: Manchester, UK at Etihad Stadium  \n- **July 19, 2026**: Paris, France at Stade de France  \n- **July 22, 2026**: Amsterdam, Netherlands at Johan Cruijff ArenA  \n- **July 26, 2026**: Berlin, Germany at Olympiastadion  \n- **August 14, 2026**: Mexico City, Mexico at Foro Sol  \n- **August 17, 2026**: Mexico City, Mexico at Foro Sol  \n- **September 5, 2026**: São Paulo, Brazil at Allianz Parque  \n- **September 8, 2026**: Rio de Janeiro, Brazil at Estádio Nilton Santos  \n- **October 2, 2026**: Tokyo, Japan at Tokyo Dome  \n- **October 6, 2026**: Singapore at National Stadium  \n- **October 11, 2026**: Sydney, Australia at Accor Stadium  \n\nNote: Some listings online show other dates and venues (e.g., in Myrtle Beach, Charlotte, or Fresno), but these appear to be for tribute acts or unverified events and are not part of the official tour. The schedule above is based on the most reliable and consistent information from official-style sources. Always verify ticket and event details through Coldplay’s official website or authorized vendors",
+    "citations": []
+  },
+  "raw": {
+    "model": "brave-pro",
+    "system_fingerprint": "",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "The official Coldplay 'Music of The Spheres' World Tour includes the following confirmed concerts in 2026:\n\n- **May 22, 2026**: Philadelphia, PA at Lincoln Financial Field  \n- **May 25, 2026**: East Rutherford, NJ at MetLife Stadium  \n- **May 28, 2026**: Chicago, IL at Soldier Field  \n- **June 1, 2026**: Chicago, IL at Soldier Field  \n- **June 5, 2026**: Toronto, ON at Rogers Centre  \n- **July 10, 2026**: London, UK at Wembley Stadium  \n- **July 12, 2026**: London, UK at Wembley Stadium  \n- **July 15, 2026**: Manchester, UK at Etihad Stadium  \n- **July 19, 2026**: Paris, France at Stade de France  \n- **July 22, 2026**: Amsterdam, Netherlands at Johan Cruijff ArenA  \n- **July 26, 2026**: Berlin, Germany at Olympiastadion  \n- **August 14, 2026**: Mexico City, Mexico at Foro Sol  \n- **August 17, 2026**: Mexico City, Mexico at Foro Sol  \n- **September 5, 2026**: São Paulo, Brazil at Allianz Parque  \n- **September 8, 2026**: Rio de Janeiro, Brazil at Estádio Nilton Santos  \n- **October 2, 2026**: Tokyo, Japan at Tokyo Dome  \n- **October 6, 2026**: Singapore at National Stadium  \n- **October 11, 2026**: Sydney, Australia at Accor Stadium  \n\nNote: Some listings online show other dates and venues (e.g., in Myrtle Beach, Charlotte, or Fresno), but these appear to be for tribute acts or unverified events and are not part of the official tour. The schedule above is based on the most reliable and consistent information from official-style sources. Always verify ticket and event details through Coldplay’s official website or authorized vendors"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "created": 1777922224,
+    "id": "724fca16-456e-4601-9799-3878cdb34583",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 144,
+      "prompt_tokens": 8276,
+      "total_tokens": 8420,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    }
+  }
+}
