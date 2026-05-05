@@ -55,7 +55,7 @@ struct ContentView: View {
                 Task { await state.create(query: query, type: type, cadenceSeconds: cadence) }
             }
             .environment(state)
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationBackground(Theme.bgElevated)
         }

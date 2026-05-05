@@ -124,24 +124,59 @@ struct SignalDetailView: View {
 struct SignalRow: View {
     let signal: Signal
 
+    private var resolved: Bool {
+        guard let occursAt = signal.occursAt else { return false }
+        return occursAt > Date()
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
+            // Resolved-event date stamp on top — this is the "what when".
+            if let occursAt = signal.occursAt, resolved {
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar.badge.checkmark")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(occursAt.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year()))
+                        .font(.system(size: 12, weight: .semibold))
+                }
+                .padding(.horizontal, 9).padding(.vertical, 5)
+                .background(Capsule().fill(Theme.accentSoft))
+                .foregroundStyle(Theme.accent)
+            }
+
             Text(signal.title)
                 .font(Theme.bodyMed()).foregroundStyle(Theme.label1)
                 .multilineTextAlignment(.leading)
-                .lineLimit(3)
+
             if let body = signal.body, !body.isEmpty {
-                Text(body).font(Theme.body()).foregroundStyle(Theme.label2)
-                    .lineLimit(3)
+                Text(body)
+                    .font(Theme.body())
+                    .foregroundStyle(Theme.label2)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            HStack(spacing: 8) {
-                if let dom = signal.sourceDomains.first {
-                    HStack(spacing: 4) {
-                        Image(systemName: "link").font(.system(size: 10, weight: .semibold))
-                        Text(dom).font(.system(size: 11, weight: .medium))
+
+            // Clickable source link — explicit chip button, not a hidden tap.
+            if let urlStr = signal.url, let url = URL(string: urlStr) {
+                Button {
+                    Haptics.tap()
+                    UIApplication.shared.open(url)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(signal.sourceDomains.first ?? url.host ?? "source")
+                            .font(.system(size: 12, weight: .semibold))
+                            .lineLimit(1)
                     }
-                    .foregroundStyle(Theme.label3)
+                    .foregroundStyle(Theme.accent)
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .background(Capsule().fill(Theme.accentSoft))
                 }
+                .buttonStyle(PressableStyle())
+            }
+
+            HStack(spacing: 8) {
                 Text(signal.firstSeenAt.formatted(.relative(presentation: .named)))
                     .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(Theme.label3)
@@ -153,12 +188,6 @@ struct SignalRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: Theme.rMed).fill(Theme.surface))
         .overlay(RoundedRectangle(cornerRadius: Theme.rMed).stroke(Theme.stroke, lineWidth: 0.5))
-        .onTapGesture {
-            Haptics.tap()
-            if let urlStr = signal.url, let url = URL(string: urlStr) {
-                UIApplication.shared.open(url)
-            }
-        }
     }
 }
 

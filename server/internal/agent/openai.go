@@ -24,7 +24,7 @@ func NewOpenAIExtractor(key string) *OpenAIExtractor {
 
 func (e *OpenAIExtractor) ExtractEvents(ctx context.Context, in ExtractInput) ([]EventCandidate, error) {
 	user := fmt.Sprintf(
-		"Query: %s\nToday: %s\n%s\nWeb search results to extract events from. Each result is a numbered entry with title, URL, optional published/age, and a snippet:\n\"\"\"\n%s\n\"\"\"\n\nReturn JSON. Hard rules:\n- Only events with a concrete date (or first day of date range) in the future relative to today.\n- Only events that match the query intent. Apply the plan rules above strictly.\n- Reject tribute bands, cover acts, fan events, and lookalike acts unless the query explicitly asks for them.\n- Reject events whose primary act is not the subject of the query (e.g. random venue listings that share a keyword).\n- If the same event appears twice across results, emit once. Cross-reference snippets when one result confirms detail another lacks.\n- Empty array is the correct answer when nothing qualifies — do not pad results to look useful.\n- URL is optional; prefer the URL of the result that mentions the event. Only emit a URL if it appears in the results above for that event.",
+		"Query: %s\nToday: %s\n%s\nWeb search results to extract events from. Each result is a numbered entry with title, URL, optional published/age, and a snippet:\n\"\"\"\n%s\n\"\"\"\n\nReturn JSON. Hard rules:\n- Only events with a concrete date (or first day of date range) in the future relative to today.\n- Only events that match the query intent. Apply the plan rules above strictly.\n- Reject tribute bands, cover acts, fan events, and lookalike acts unless the query explicitly asks for them.\n- Reject events whose primary act is not the subject of the query (e.g. random venue listings that share a keyword).\n- If the same event appears twice across results, emit once. Cross-reference snippets when one result confirms detail another lacks.\n- Empty array is the correct answer when nothing qualifies — do not pad results to look useful.\n- URL is optional; prefer the URL of the result that mentions the event. Only emit a URL if it appears in the results above for that event.\n- summary: 2-3 sentences of factual prose explaining what the event is, when, where, and why it matters to the query. Use only details visible in the snippets — do not invent. No marketing language. No emoji. No bullet points.",
 		in.Query, in.TodayISO, formatPlanForPrompt(in.Plan), in.Answer)
 
 	schema := &jsonschema.Definition{
@@ -41,8 +41,9 @@ func (e *OpenAIExtractor) ExtractEvents(ctx context.Context, in ExtractInput) ([
 						"city":       {Type: jsonschema.String, Description: "city or empty string"},
 						"url":        {Type: jsonschema.String, Description: "URL or empty string"},
 						"confidence": {Type: jsonschema.Number},
+						"summary":    {Type: jsonschema.String, Description: "2-3 sentence prose: what, when, where, why it matters"},
 					},
-					Required:             []string{"title", "date", "venue", "city", "url", "confidence"},
+					Required:             []string{"title", "date", "venue", "city", "url", "confidence", "summary"},
 					AdditionalProperties: false,
 				},
 			},
@@ -81,6 +82,7 @@ func (e *OpenAIExtractor) ExtractEvents(ctx context.Context, in ExtractInput) ([
 			City       string  `json:"city"`
 			URL        string  `json:"url"`
 			Confidence float64 `json:"confidence"`
+			Summary    string  `json:"summary"`
 		} `json:"events"`
 	}
 	if err := json.Unmarshal([]byte(resp.Choices[0].Message.Content), &out); err != nil {
@@ -95,6 +97,7 @@ func (e *OpenAIExtractor) ExtractEvents(ctx context.Context, in ExtractInput) ([
 			City:       strPtr(e.City),
 			URL:        strPtr(e.URL),
 			Confidence: e.Confidence,
+			Summary:    e.Summary,
 		})
 	}
 	return cands, nil

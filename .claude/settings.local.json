@@ -305,7 +305,11 @@
       "Bash(make test-e2e *)",
       "Bash(git -C /Users/paulsizon/development/notify diff iosApp/iosApp/AppState.swift)",
       "Bash(git -C /Users/paulsizon/development/notify add SPEC.md server/.env.example server/README.md server/e2e/e2e_full_test.go server/e2e/quality_e2e_test.go server/internal/agent/brave.go server/internal/agent/brave_integration_test.go server/internal/agent/brave_test.go server/internal/agent/openai.go server/internal/agent/planner_debug_test.go server/internal/agent/run_integration_test.go server/internal/agent/testdata/brave_sample.json server/internal/config/config.go server/scripts/local-up.sh)",
-      "Bash(git -C /Users/paulsizon/development/notify status)"
+      "Bash(git -C /Users/paulsizon/development/notify status)",
+      "Bash(awk *)",
+      "Bash(ps *)",
+      "Bash(kill 3728)",
+      "Bash(make run *)"
     ]
   },
   "enableAllProjectMcpServers": true,

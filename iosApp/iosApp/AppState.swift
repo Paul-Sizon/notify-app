@@ -126,8 +126,9 @@ final class AppState {
             signalsBySub[s.id] = []
             Haptics.success()
             toast = "Watcher added: \(s.query)"
-            // Authoritative resync — guards against local parse drift.
-            await refresh()
+            // Authoritative resync runs in background — UI already optimistic,
+            // no reason to make the caller (and the toast) wait on a full refetch.
+            Task { await refresh() }
         } catch {
             Haptics.error()
             lastError = "create failed: \(error.localizedDescription)"

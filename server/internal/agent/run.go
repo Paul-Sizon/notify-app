@@ -191,17 +191,23 @@ func eventsToSignals(subID uuid.UUID, cands []EventCandidate, now time.Time, pla
 			continue
 		}
 
-		bodyParts := []string{}
-		if c.Date != nil {
-			bodyParts = append(bodyParts, *c.Date)
+		// GPT-written prose summary is the preferred body — explains what,
+		// when, where, why notable. Fall back to "date · venue · city" for
+		// stub/test paths and any extractor that doesn't fill summary.
+		body := strings.TrimSpace(c.Summary)
+		if body == "" {
+			bodyParts := []string{}
+			if c.Date != nil {
+				bodyParts = append(bodyParts, *c.Date)
+			}
+			if c.Venue != nil {
+				bodyParts = append(bodyParts, *c.Venue)
+			}
+			if c.City != nil {
+				bodyParts = append(bodyParts, *c.City)
+			}
+			body = strings.Join(bodyParts, " · ")
 		}
-		if c.Venue != nil {
-			bodyParts = append(bodyParts, *c.Venue)
-		}
-		if c.City != nil {
-			bodyParts = append(bodyParts, *c.City)
-		}
-		body := strings.Join(bodyParts, " · ")
 
 		domains := domainsFromURL(c.URL)
 		payload, _ := json.Marshal(c)

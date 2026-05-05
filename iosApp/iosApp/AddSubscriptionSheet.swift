@@ -22,31 +22,21 @@ struct AddSubscriptionSheet: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            grabber
-            ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
-                    title
-                    queryField
-                    typeSelector
-                    cadenceSelector
-                }
-                .padding(.horizontal, 22)
-                .padding(.top, 8)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 26) {
+                title
+                queryField
+                typeSelector
+                cadenceSelector
             }
-            footer
+            .padding(.horizontal, 22)
+            .padding(.top, 18)
+            .padding(.bottom, 24)
         }
         .background(Theme.bgElevated.ignoresSafeArea())
         .preferredColorScheme(.dark)
+        .safeAreaInset(edge: .bottom, spacing: 0) { footer }
         .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { queryFocused = true } }
-    }
-
-    private var grabber: some View {
-        RoundedRectangle(cornerRadius: 3)
-            .fill(Theme.label4)
-            .frame(width: 38, height: 5)
-            .frame(maxWidth: .infinity)
-            .padding(.top, 8)
     }
 
     private var title: some View {
@@ -171,6 +161,8 @@ struct AddSubscriptionSheet: View {
             Button {
                 let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard trimmed.count >= 3 else { Haptics.error(); return }
+                Haptics.tapMedium()
+                queryFocused = false
                 onCreate(trimmed, type, Self.cadences[cadenceIndex].seconds)
                 dismiss()
             } label: {
@@ -187,6 +179,10 @@ struct AddSubscriptionSheet: View {
             .disabled(query.trimmingCharacters(in: .whitespacesAndNewlines).count < 3)
         }
         .padding(.horizontal, 22).padding(.top, 14).padding(.bottom, 26)
-        .background(Theme.bgElevated)
+        .background(
+            Theme.bgElevated
+                .overlay(Rectangle().fill(Theme.stroke).frame(height: 0.5), alignment: .top)
+                .ignoresSafeArea(edges: .bottom)
+        )
     }
 }

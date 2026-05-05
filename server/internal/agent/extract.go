@@ -17,6 +17,11 @@ type EventCandidate struct {
 	City       *string `json:"city"`
 	URL        *string `json:"url"`
 	Confidence float64 `json:"confidence"`
+	// Summary is a 2-3 sentence GPT-written prose description of the event:
+	// what is happening, when, where, why notable. Surfaced in the signal
+	// detail UI so the user gets a readable explanation instead of a bare
+	// "date · venue · city" line.
+	Summary string `json:"summary"`
 }
 
 type NewsCandidate struct {
