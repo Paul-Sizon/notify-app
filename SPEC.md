@@ -31,7 +31,7 @@ A backend agent that periodically searches the web for user-defined queries, ext
 | DB access | sqlc | typed queries from SQL |
 | Migrations | goose | |
 | Job queue | river | Postgres-backed, no Redis needed |
-| Search | Tavily | `search_depth=advanced`, `include_raw_content=true`. Falls back to Brave behind an interface if needed |
+| Search | Brave Web Search API | `count=20`, `extra_snippets=true`. Behind a `Searcher` interface so providers can be swapped (Tavily, etc.) |
 | LLM | OpenAI `gpt-4o-mini` | use `response_format: json_schema` (Structured Outputs), not plain JSON mode |
 | Push | sideshow/apns2 | direct APNs, .p8 auth key |
 | Mobile shared | Kotlin Multiplatform + Ktor client + kotlinx.serialization | |

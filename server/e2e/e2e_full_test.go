@@ -23,8 +23,8 @@ import (
 // Costs: ~1 Brave call, ~2 OpenAI calls per run. ~$0.05 total.
 // Run with: make test-e2e
 func TestE2E_FullStack_RealAPIs(t *testing.T) {
-	if os.Getenv("BRAVE_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
-		t.Skip("BRAVE_API_KEY and OPENAI_API_KEY required")
+	if os.Getenv("BRAVE_SEARCH_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
+		t.Skip("BRAVE_SEARCH_API_KEY and OPENAI_API_KEY required")
 	}
 	pool := testhelpers.TestDBPool(t)
 	d := db.New(pool)
@@ -32,7 +32,7 @@ func TestE2E_FullStack_RealAPIs(t *testing.T) {
 	extractor := agent.NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
 	deps := agent.Deps{
 		DB:        d,
-		Searcher:  agent.NewBraveClient(os.Getenv("BRAVE_API_KEY")),
+		Searcher:  agent.NewBraveClient(os.Getenv("BRAVE_SEARCH_API_KEY")),
 		Planner:   extractor,
 		Extractor: extractor,
 		Pusher:    &push.LogPusher{},

@@ -30,7 +30,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 rm -f /tmp/notify-migrate-dev.done /tmp/notify-migrate-test.done /tmp/notify-integration.done
 
 # Helper: source .env so pane commands see DATABASE_URL, TEST_DATABASE_URL,
-# OPENAI_API_KEY, BRAVE_API_KEY.
+# OPENAI_API_KEY, BRAVE_SEARCH_API_KEY.
 ENVPREFIX="set -a; source $REPO/.env; set +a"
 
 PANE_NAMES=(postgres migrate-dev migrate-test unit integration e2e server logs)

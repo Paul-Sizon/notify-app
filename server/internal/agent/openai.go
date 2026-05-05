@@ -24,7 +24,7 @@ func NewOpenAIExtractor(key string) *OpenAIExtractor {
 
 func (e *OpenAIExtractor) ExtractEvents(ctx context.Context, in ExtractInput) ([]EventCandidate, error) {
 	user := fmt.Sprintf(
-		"Query: %s\nToday: %s\n%s\nWeb-grounded answer to extract events from:\n\"\"\"\n%s\n\"\"\"\n\nReturn JSON. Hard rules:\n- Only events with a concrete date (or first day of date range) in the future relative to today.\n- Only events that match the query intent. Apply the plan rules above strictly.\n- Reject tribute bands, cover acts, fan events, and lookalike acts unless the query explicitly asks for them.\n- Reject events whose primary act is not the subject of the query (e.g. random venue listings that share a keyword).\n- If the same event appears twice, emit once.\n- Empty array is the correct answer when nothing qualifies — do not pad results to look useful.\n- URL is optional; emit a URL only if the answer text actually contains one for that event.",
+		"Query: %s\nToday: %s\n%s\nWeb search results to extract events from. Each result is a numbered entry with title, URL, optional published/age, and a snippet:\n\"\"\"\n%s\n\"\"\"\n\nReturn JSON. Hard rules:\n- Only events with a concrete date (or first day of date range) in the future relative to today.\n- Only events that match the query intent. Apply the plan rules above strictly.\n- Reject tribute bands, cover acts, fan events, and lookalike acts unless the query explicitly asks for them.\n- Reject events whose primary act is not the subject of the query (e.g. random venue listings that share a keyword).\n- If the same event appears twice across results, emit once. Cross-reference snippets when one result confirms detail another lacks.\n- Empty array is the correct answer when nothing qualifies — do not pad results to look useful.\n- URL is optional; prefer the URL of the result that mentions the event. Only emit a URL if it appears in the results above for that event.",
 		in.Query, in.TodayISO, formatPlanForPrompt(in.Plan), in.Answer)
 
 	schema := &jsonschema.Definition{
@@ -102,7 +102,7 @@ func (e *OpenAIExtractor) ExtractEvents(ctx context.Context, in ExtractInput) ([
 
 func (e *OpenAIExtractor) ExtractNews(ctx context.Context, in ExtractInput) (NewsExtraction, error) {
 	user := fmt.Sprintf(
-		"Topic: %s\nToday: %s\n%s\nWhat has already been reported (do not repeat substantively similar items):\n\"\"\"\n%s\n\"\"\"\n\nWeb-grounded answer to extract news from:\n\"\"\"\n%s\n\"\"\"\n\nReturn JSON. Hard rules:\n- is_new_development must be false for any item already covered above.\n- Discard opinion pieces, speculation, listicles, and SEO content.\n- Apply the plan rules above strictly — drop items that don't match the query subject or that hit a reject term.\n- updated_summary must be 3-5 sentences capturing all material developments now known. Rewrite, do not append.",
+		"Topic: %s\nToday: %s\n%s\nWhat has already been reported (do not repeat substantively similar items):\n\"\"\"\n%s\n\"\"\"\n\nWeb search results to extract news from. Each result is a numbered entry with title, URL, optional published/age, and a snippet:\n\"\"\"\n%s\n\"\"\"\n\nReturn JSON. Hard rules:\n- is_new_development must be false for any item already covered above.\n- Discard opinion pieces, speculation, listicles, and SEO content.\n- Apply the plan rules above strictly — drop items that don't match the query subject or that hit a reject term.\n- Prefer the URL of the result the item came from. Cross-reference snippets when sources confirm each other.\n- updated_summary must be 3-5 sentences capturing all material developments now known. Rewrite, do not append.",
 		in.Query, in.TodayISO, formatPlanForPrompt(in.Plan), in.RollingSummary, in.Answer)
 
 	schema := &jsonschema.Definition{
@@ -190,14 +190,14 @@ func strPtr(s string) *string {
 	return &s
 }
 
-const eventSystemPrompt = `You extract upcoming events from web-grounded answer text. You are precise. You discard speculation, retrospectives, tribute/cover acts, and irrelevant content. You never invent details. If the text says no events are known, return an empty array.
+const eventSystemPrompt = `You extract upcoming events from web search results (numbered list of titles + snippets + URLs). You are precise. You discard speculation, retrospectives, tribute/cover acts, and irrelevant content. You never invent details. Snippets are short and may be incomplete — when a date or venue is unclear, drop the candidate rather than guess. If no result mentions a qualifying event, return an empty array.
 
 Granularity rules:
 - One emitted event per real-world event. For multi-day or multi-session events (race weekends, festivals, conferences, concert tours of a single show), emit ONE event with the headline date (race day / opening day / main set), not one per session/practice/heat.
 - The title MUST reference the primary subject of the query (artist, race series, festival, regulator). Use the canonical full name, not a generic sub-label. Example: "Formula 1 Brazilian Grand Prix", not "Grand Prix" or "Race".
 - A tour with multiple dates IS multiple events — one per show date.`
 
-const newsSystemPrompt = `You monitor news for material new developments on a topic. You distinguish genuinely new facts from commentary, retrospectives, and rephrased coverage. You prefer primary sources. You never invent details.`
+const newsSystemPrompt = `You monitor news for material new developments on a topic. Input is a list of web search results (numbered title + snippet + URL). You distinguish genuinely new facts from commentary, retrospectives, and rephrased coverage. You prefer primary sources. You never invent details. Snippets are short — if a result is too thin to verify a fact, drop it.`
 
 const plannerSystemPrompt = `You are a query planner for a precision-focused web watcher. The user types a short, often ambiguous query. You convert it into:
 

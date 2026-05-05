@@ -32,8 +32,8 @@ import (
 
 func newQualityHarness(t *testing.T) *e2e.Client {
 	t.Helper()
-	if os.Getenv("BRAVE_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
-		t.Skip("BRAVE_API_KEY and OPENAI_API_KEY required")
+	if os.Getenv("BRAVE_SEARCH_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
+		t.Skip("BRAVE_SEARCH_API_KEY and OPENAI_API_KEY required")
 	}
 	pool := testhelpers.TestDBPool(t)
 	d := db.New(pool)
@@ -41,7 +41,7 @@ func newQualityHarness(t *testing.T) *e2e.Client {
 	extractor := agent.NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
 	deps := agent.Deps{
 		DB:        d,
-		Searcher:  agent.NewBraveClient(os.Getenv("BRAVE_API_KEY")),
+		Searcher:  agent.NewBraveClient(os.Getenv("BRAVE_SEARCH_API_KEY")),
 		Planner:   extractor,
 		Extractor: extractor,
 		Pusher:    &push.LogPusher{},

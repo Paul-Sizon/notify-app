@@ -32,7 +32,7 @@ func Load() (Config, error) {
 		DatabaseURL: os.Getenv("DATABASE_URL"),
 		HTTPAddr:    or(os.Getenv("HTTP_ADDR"), ":8080"),
 		OpenAIKey:   os.Getenv("OPENAI_API_KEY"),
-		BraveKey:    os.Getenv("BRAVE_API_KEY"),
+		BraveKey:    os.Getenv("BRAVE_SEARCH_API_KEY"),
 		APNs: APNsConfig{
 			KeyPath:    os.Getenv("APNS_KEY_PATH"),
 			KeyID:      os.Getenv("APNS_KEY_ID"),
@@ -48,7 +48,7 @@ func Load() (Config, error) {
 		return c, errors.New("OPENAI_API_KEY required")
 	}
 	if c.BraveKey == "" {
-		return c, errors.New("BRAVE_API_KEY required")
+		return c, errors.New("BRAVE_SEARCH_API_KEY required")
 	}
 	return c, nil
 }

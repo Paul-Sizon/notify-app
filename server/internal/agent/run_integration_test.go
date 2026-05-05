@@ -36,7 +36,7 @@ func TestRunSubscription_FullPipeline_DedupsOnSecondRun(t *testing.T) {
 	extractor := NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
 	deps := Deps{
 		DB:        d,
-		Searcher:  NewBraveClient(os.Getenv("BRAVE_API_KEY")),
+		Searcher:  NewBraveClient(os.Getenv("BRAVE_SEARCH_API_KEY")),
 		Planner:   extractor,
 		Extractor: extractor,
 	}
@@ -81,7 +81,7 @@ func TestRunSubscription_News_UpdatesRollingSummary(t *testing.T) {
 	extractor := NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
 	deps := Deps{
 		DB:        d,
-		Searcher:  NewBraveClient(os.Getenv("BRAVE_API_KEY")),
+		Searcher:  NewBraveClient(os.Getenv("BRAVE_SEARCH_API_KEY")),
 		Planner:   extractor,
 		Extractor: extractor,
 	}
@@ -240,7 +240,7 @@ func TestRunSubscription_SuccessAfterFailure_ResetsCounters(t *testing.T) {
 
 func requireKeys(t *testing.T) {
 	t.Helper()
-	if os.Getenv("BRAVE_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
-		t.Skip("BRAVE_API_KEY and OPENAI_API_KEY required")
+	if os.Getenv("BRAVE_SEARCH_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
+		t.Skip("BRAVE_SEARCH_API_KEY and OPENAI_API_KEY required")
 	}
 }

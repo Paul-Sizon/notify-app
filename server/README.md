@@ -1,6 +1,6 @@
 # Signal Monitor — Server
 
-Go backend. Web-grounded agent that monitors user-defined queries via Brave Answers + OpenAI structured extraction, dedupes signals, and pushes new findings via APNs.
+Go backend. Web-grounded agent that monitors user-defined queries via Brave Web Search + OpenAI structured extraction, dedupes signals, and pushes new findings via APNs.
 
 ## Quickstart
 
@@ -63,10 +63,10 @@ Base path `/v1`. Auth via `X-Device-Id` header (UUID returned from `POST /device
 
 ## Env
 
-See `.env.example`. Required: `DATABASE_URL`, `OPENAI_API_KEY`, `BRAVE_API_KEY`. APNs vars optional — without them, `LogPusher` prints notifications to stdout (Day 1 demo mode).
+See `.env.example`. Required: `DATABASE_URL`, `OPENAI_API_KEY`, `BRAVE_SEARCH_API_KEY`. APNs vars optional — without them, `LogPusher` prints notifications to stdout (Day 1 demo mode).
 
 ## Notes
 
-- Brave Answers does not return structured citations. URL fields are best-effort from prose.
+- Brave Web Search returns up to 20 results per call (title + URL + snippet + page_age). The Searcher formats them as a numbered text block; the OpenAI extractor reads that block as its grounding source. Citations are URLs of the underlying results.
 - LLM nondeterminism: re-running the same query may produce slightly different fingerprints. Strict dedup is verified at the DB layer (`TestInsertSignals_OnConflictReturnsOnlyNew`); pipeline-level dedup is best-effort across runs.
 - Single binary; api + scheduler share the process. Re-split later if needed.

@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-func TestBraveAnswers_Live(t *testing.T) {
-	key := os.Getenv("BRAVE_API_KEY")
+func TestBraveSearch_Live(t *testing.T) {
+	key := os.Getenv("BRAVE_SEARCH_API_KEY")
 	if key == "" {
-		t.Skip("BRAVE_API_KEY missing")
+		t.Skip("BRAVE_SEARCH_API_KEY missing")
 	}
 	c := NewBraveClient(key)
 
@@ -36,8 +36,11 @@ func TestBraveAnswers_Live(t *testing.T) {
 	if len(res.Text) < 50 {
 		t.Fatalf("suspiciously short text: %q", res.Text)
 	}
+	if len(res.Citations) == 0 {
+		t.Fatalf("expected at least one citation from Brave Search results")
+	}
 	t.Logf("text (%d chars): %s", len(res.Text), res.Text)
-	t.Logf("citations: %d (Brave Answers does not currently return structured citations)", len(res.Citations))
+	t.Logf("citations: %d", len(res.Citations))
 
 	// Save fixture for unit tests + extractor tests.
 	if dir := os.Getenv("FIXTURE_DIR"); dir != "" {

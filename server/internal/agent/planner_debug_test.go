@@ -15,8 +15,8 @@ import (
 //
 //	go test -tags=integration -count=1 -run TestDebug_FullPipelineTrace -v ./internal/agent
 func TestDebug_FullPipelineTrace(t *testing.T) {
-	if os.Getenv("BRAVE_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
-		t.Skip("BRAVE_API_KEY and OPENAI_API_KEY required")
+	if os.Getenv("BRAVE_SEARCH_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
+		t.Skip("BRAVE_SEARCH_API_KEY and OPENAI_API_KEY required")
 	}
 	if os.Getenv("RUN_AGENT_DEBUG") == "" {
 		// Diagnostic-only: real Brave + OpenAI, output is informational and
@@ -28,7 +28,7 @@ func TestDebug_FullPipelineTrace(t *testing.T) {
 		"Lollapalooza São Paulo 2026 lineup and dates",
 	}
 	e := NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
-	b := NewBraveClient(os.Getenv("BRAVE_API_KEY"))
+	b := NewBraveClient(os.Getenv("BRAVE_SEARCH_API_KEY"))
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
