@@ -309,7 +309,9 @@
       "Bash(awk *)",
       "Bash(ps *)",
       "Bash(kill 3728)",
-      "Bash(make run *)"
+      "Bash(make run *)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'id=C070F899-685E-55D0-86E7-AB103493ED1B' -derivedDataPath build build)",
+      "Bash(kill 63475)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -129,6 +129,10 @@ final class AppState {
             // Authoritative resync runs in background — UI already optimistic,
             // no reason to make the caller (and the toast) wait on a full refetch.
             Task { await refresh() }
+            // Kick the agent immediately so the user sees results without
+            // waiting for the cadence boundary. `run` drives the LiveAgentView
+            // overlay, fetches signals, and pushes for any new ones.
+            Task { await run(s) }
         } catch {
             Haptics.error()
             lastError = "create failed: \(error.localizedDescription)"
