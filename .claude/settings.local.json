@@ -247,7 +247,15 @@
       "Bash(cp /Users/paulsizon/.claude/skills/zellij-stack/local-up.sh /Users/paulsizon/development/notify/server/scripts/local-up.sh)",
       "Bash(chmod +x /Users/paulsizon/development/notify/server/scripts/local-up.sh)",
       "Bash(bash -n /Users/paulsizon/development/notify/server/scripts/local-up.sh)",
-      "Bash(go vet *)"
+      "Bash(go vet *)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(mkdir -p /tmp/notify-design)",
+      "Bash(gunzip -c /Users/paulsizon/.claude/projects/-Users-paulsizon-development-notify/c0265983-9a4f-4d58-b74b-80ffe850bfb0/tool-results/webfetch-1777929783303-ew82uy.bin)",
+      "Bash(tar -xf design.tar)",
+      "Bash(./gradlew :shared:compileKotlinIosSimulatorArm64 --no-daemon)",
+      "Bash(./gradlew :shared:compileKotlinIosSimulatorArm64)",
+      "Bash(xcodebuild -scheme iosApp -project iosApp.xcodeproj -destination 'generic/platform=iOS Simulator' -configuration Debug -quiet build)",
+      "Bash(xcodebuild -scheme iosApp -project iosApp.xcodeproj -destination 'generic/platform=iOS Simulator' -configuration Debug build)"
     ]
   },
   "enableAllProjectMcpServers": true,

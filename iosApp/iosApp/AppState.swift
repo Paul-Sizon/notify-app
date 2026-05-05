@@ -1,0 +1,146 @@
+import Foundation
+import Observation
+import SwiftUI
+
+/// Root observable state for the entire app.
+///
+/// `@Observable` (Swift 5.9+) re-renders only views that read each property —
+/// no manual `@Published` boilerplate. `Set<String>` of seen signal IDs lets
+/// us detect newly-arrived signals on each run and trigger mock pushes.
+/// Local dev — Go server runs on this URL via `go run ./cmd/server`.
+/// On a physical device, change to your Mac's LAN IP (e.g. http://192.168.1.x:8080).
+let kBackendBaseURL = "http://localhost:8080"
+
+@Observable
+@MainActor
+final class AppState {
+    private(set) var subscriptions: [Subscription] = []
+    private(set) var signalsBySub: [String: [Signal]] = [:]
+    var seenSignalIds: Set<String> = []
+
+    var loading: Bool = false
+    var lastError: String?
+
+    /// Tab index — own state lives here, not in TabView, so we can deep-link
+    /// from a notification tap.
+    var selectedTab: Tab = .watchers
+
+    /// Latest live-agent run for the watchers screen (visualizer overlay).
+    var liveAgentSubId: String?
+
+    let api: ApiService
+
+    init(api: ApiService = ApiService(baseURL: kBackendBaseURL)) {
+        self.api = api
+    }
+
+    enum Tab: Int, Hashable, CaseIterable {
+        case watchers, alerts, signals, account
+    }
+
+    func bootstrap() async {
+        do {
+            try await api.bootstrapDevice()
+            await refresh()
+        } catch {
+            lastError = "bootstrap: \(error.localizedDescription)"
+        }
+    }
+
+    func refresh() async {
+        loading = true
+        defer { loading = false }
+        do {
+            let subs = try await api.listSubscriptions()
+            self.subscriptions = subs.sorted { $0.createdAt > $1.createdAt }
+            for sub in subs {
+                let sigs = try await api.listSignals(subscriptionId: sub.id, limit: 30)
+                signalsBySub[sub.id] = sigs
+                for s in sigs { seenSignalIds.insert(s.id) }
+            }
+        } catch {
+            lastError = "refresh: \(error.localizedDescription)"
+        }
+    }
+
+    func create(query: String, type: SubscriptionKind, cadenceSeconds: Int) async {
+        do {
+            let s = try await api.createSubscription(query: query, type: type, cadenceSeconds: cadenceSeconds)
+            subscriptions.insert(s, at: 0)
+            signalsBySub[s.id] = []
+            Haptics.success()
+        } catch {
+            Haptics.error()
+            lastError = "create: \(error.localizedDescription)"
+        }
+    }
+
+    func delete(_ sub: Subscription) async {
+        do {
+            try await api.deleteSubscription(sub.id)
+            subscriptions.removeAll { $0.id == sub.id }
+            signalsBySub[sub.id] = nil
+            Haptics.warning()
+        } catch {
+            lastError = "delete: \(error.localizedDescription)"
+        }
+    }
+
+    /// Trigger an agent run — backend executes search → extract → insert,
+    /// returns count of new signals. Newly arrived signals get mock pushes.
+    func run(_ sub: Subscription) async {
+        liveAgentSubId = sub.id
+        do {
+            _ = try await api.runSubscription(sub.id)
+            let sigs = try await api.listSignals(subscriptionId: sub.id, limit: 30)
+            let newOnes = sigs.filter { !seenSignalIds.contains($0.id) }
+            signalsBySub[sub.id] = sigs
+            for s in newOnes {
+                seenSignalIds.insert(s.id)
+                MockPush.shared.deliver(
+                    title: sub.query,
+                    body: s.title,
+                    subscriptionId: sub.id,
+                    signalId: s.id
+                )
+            }
+            // give the visualizer a beat before dismissing
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            liveAgentSubId = nil
+            if !newOnes.isEmpty { Haptics.success() } else { Haptics.tap() }
+        } catch {
+            liveAgentSubId = nil
+            Haptics.error()
+            lastError = "run: \(error.localizedDescription)"
+        }
+    }
+
+    // ─── Derived ───
+    func signals(for subId: String) -> [Signal] { signalsBySub[subId] ?? [] }
+
+    var allSignalsRecent: [(Signal, Subscription)] {
+        var out: [(Signal, Subscription)] = []
+        for sub in subscriptions {
+            for s in (signalsBySub[sub.id] ?? []) { out.append((s, sub)) }
+        }
+        return out.sorted { $0.0.firstSeenAt > $1.0.firstSeenAt }
+    }
+
+    var resolvedSubscriptions: [Subscription] {
+        subscriptions.filter { sub in
+            (signalsBySub[sub.id] ?? []).contains { $0.isResolved }
+        }
+    }
+
+    var activeSubscriptions: [Subscription] {
+        let resolvedIds = Set(resolvedSubscriptions.map(\.id))
+        return subscriptions.filter { !resolvedIds.contains($0.id) }
+    }
+
+    func confirmedDate(for sub: Subscription) -> Date? {
+        (signalsBySub[sub.id] ?? [])
+            .compactMap(\.occursAt)
+            .filter { $0 > Date() }
+            .min()
+    }
+}

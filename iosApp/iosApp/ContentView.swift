@@ -1,33 +1,92 @@
-import Shared
 import SwiftUI
 
+/// Root container — owns AppState, mounts CustomTabBar + active screen.
+/// Bootstrap (device registration + initial fetch) runs in `.task`.
 struct ContentView: View {
-    @State private var showContent = false
+    @State private var state = AppState()
+    @State private var showAdd = false
+    @State private var detailSub: Subscription?
+
     var body: some View {
-        VStack {
-            Button("Click me!") {
-                withAnimation {
-                    showContent = !showContent
-                }
+        ZStack(alignment: .bottom) {
+            Theme.bg.ignoresSafeArea()
+
+            // Active tab content
+            currentTab
+                .environment(state)
+                .padding(.bottom, 92) // leave room for tab bar
+
+            // FAB (only on watchers tab, never empty)
+            if state.selectedTab == .watchers && !state.subscriptions.isEmpty {
+                GlassFAB { showAdd = true }
+                    .padding(.bottom, 102)
+                    .padding(.trailing, 22)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .transition(.scale.combined(with: .opacity))
             }
 
-            if showContent {
-                VStack(spacing: 16) {
-                    Image(systemName: "swift")
-                        .font(.system(size: 200))
-                        .foregroundColor(.accentColor)
-                    Text("SwiftUI: \(Greeting().greet())")
+            // Custom tab bar
+            CustomTabBar(active: state.selectedTab) { tab in
+                Haptics.selection()
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) {
+                    state.selectedTab = tab
                 }
-                .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding()
+        .preferredColorScheme(.dark)
+        .task {
+            MockPush.shared.bootstrap()
+            _ = await MockPush.shared.requestAuthorization()
+            await state.bootstrap()
+        }
+        .sheet(isPresented: $showAdd) {
+            AddSubscriptionSheet { query, type, cadence in
+                Task { await state.create(query: query, type: type, cadenceSeconds: cadence) }
+            }
+            .environment(state)
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Theme.bgElevated)
+        }
+        .sheet(item: $detailSub) { sub in
+            SignalDetailView(subscription: sub)
+                .environment(state)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Theme.bg)
+        }
+        // Live-agent overlay
+        .overlay {
+            if let runningId = state.liveAgentSubId,
+               let sub = state.subscriptions.first(where: { $0.id == runningId }) {
+                LiveAgentView(subscription: sub)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    .zIndex(100)
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: state.liveAgentSubId)
+        .environment(\.openSubscription, { sub in detailSub = sub })
+    }
+
+    @ViewBuilder
+    private var currentTab: some View {
+        switch state.selectedTab {
+        case .watchers: WatchersView(onAdd: { showAdd = true })
+        case .alerts:   AlertsView()
+        case .signals:  SignalsView()
+        case .account:  AccountView()
+        }
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+// Environment plumbing so any card can request a detail open without
+// drilling closures down through three components.
+private struct OpenSubscriptionKey: EnvironmentKey {
+    static let defaultValue: (Subscription) -> Void = { _ in }
+}
+extension EnvironmentValues {
+    var openSubscription: (Subscription) -> Void {
+        get { self[OpenSubscriptionKey.self] }
+        set { self[OpenSubscriptionKey.self] = newValue }
     }
 }
