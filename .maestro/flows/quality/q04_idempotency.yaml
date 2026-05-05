@@ -1,0 +1,49 @@
+# Quality: re-running an event watcher must not duplicate signals. The
+# dedup contract is `UNIQUE(subscription_id, fingerprint)` server-side.
+# Mirrors Go's TestQuality_Idempotency_RerunDoesNotInflate.
+#
+# The UI surface for idempotency: signal count in the detail header and
+# the count chip on the Watchers card. After 2nd run, count should stay
+# the same (or grow only by genuinely new items, not re-extracted ones).
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../shared/dismiss_permission.yaml
+
+- runFlow:
+    when:
+      visible: "Add your first watcher"
+    commands:
+      - tapOn: "Add your first watcher"
+- runFlow:
+    when:
+      notVisible: "New watcher"
+    commands:
+      - tapOn: "+"
+
+- tapOn: "Coldplay tour São Paulo 2026"
+- inputText: "Coldplay tour 2026 with dates and venues"
+- tapOn: "Start watching"
+
+- tapOn: "Coldplay tour 2026 with dates and venues"
+- tapOn: "Run agent now"
+# Plain-string `visible:` is anchored regex; the chip is "1 SIGNAL"/etc,
+# never bare "SIGNAL". Wildcard wraps for substring semantics.
+- extendedWaitUntil:
+    visible: ".*SIGNAL.*"
+    timeout: 60000
+- takeScreenshot: q04-after-first-run
+
+# Second run — should NOT add new signals (dedup by fingerprint).
+- tapOn: "Run agent now"
+- extendedWaitUntil:
+    notVisible: "LIVE AGENT"
+    timeout: 60000
+    optional: true
+- takeScreenshot: q04-after-second-run
+
+# We don't compare counts numerically (LLM nondeterminism may yield 0–1
+# new signals), but we assert the screen still renders cleanly.
+- assertVisible: "Run agent now"

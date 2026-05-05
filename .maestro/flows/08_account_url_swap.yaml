@@ -1,0 +1,23 @@
+# Account → Backend URL alert flow. Verifies:
+#   - row tap opens alert with current URL pre-filled
+#   - "Reset to localhost" path returns to default
+# Doesn't actually swap to a new tunnel (would need a real reachable
+# server to bootstrap against and would mutate device state).
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../shared/dismiss_permission.yaml
+
+- tapOn: "Account"
+- assertVisible: "Backend URL"
+- tapOn: "Backend URL"
+# iOS alert message text isn't always surfaced via XCTest accessibility on
+# new iOS — assert the alert's button instead, which is reliably exposed.
+- assertVisible: "Save"
+- assertVisible: "Reset to localhost"
+- takeScreenshot: account-url-alert
+
+- tapOn: "Cancel"
+- assertVisible: "Backend URL"   # still on Account, alert dismissed

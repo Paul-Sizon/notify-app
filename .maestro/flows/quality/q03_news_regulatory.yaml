@@ -1,0 +1,37 @@
+# Quality: news pipeline with rolling-summary dedup. Stablecoin Brazil is
+# a topic with continuous coverage; expect at least one signal.
+# Mirrors Go's TestQuality_News_RegulatoryAndCompetitive/brazil_stablecoin.
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../shared/dismiss_permission.yaml
+
+- runFlow:
+    when:
+      visible: "Add your first watcher"
+    commands:
+      - tapOn: "Add your first watcher"
+- runFlow:
+    when:
+      notVisible: "New watcher"
+    commands:
+      - tapOn: "+"
+
+- tapOn: "Coldplay tour São Paulo 2026"
+- inputText: "Stablecoin legislation in Brazil"
+- tapOn: "News"
+- tapOn: "Start watching"
+- assertVisible: "NEWS"
+
+- tapOn: "Stablecoin legislation in Brazil"
+- tapOn: "Run agent now"
+
+# Plain-string `visible:` is an anchored regex against accessibilityText
+# — the chip renders as "1 SIGNAL"/"2 SIGNALS", not bare "SIGNAL". Use a
+# wildcard to opt into substring matching.
+- extendedWaitUntil:
+    visible: ".*SIGNAL.*"
+    timeout: 60000
+- takeScreenshot: q03-news-detail

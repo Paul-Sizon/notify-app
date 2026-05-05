@@ -1,0 +1,37 @@
+# Quality: query with no real-world events. Extractor must return empty
+# (no hallucination). UI must show "No signals yet" empty state.
+# Mirrors Go's TestQuality_ZeroResult_NoHallucination/underwater_basket_weaving.
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../shared/dismiss_permission.yaml
+
+- runFlow:
+    when:
+      visible: "Add your first watcher"
+    commands:
+      - tapOn: "Add your first watcher"
+- runFlow:
+    when:
+      notVisible: "New watcher"
+    commands:
+      - tapOn: "+"
+
+- tapOn: "Coldplay tour São Paulo 2026"
+- inputText: "underwater basket weaving conference Curitiba"
+- tapOn: "Start watching"
+
+- tapOn: "underwater basket weaving conference Curitiba"
+- tapOn: "Run agent now"
+
+# Agent runs but should produce zero signals. Wait long enough for the
+# round-trip to complete, then assert empty state still showing.
+- extendedWaitUntil:
+    notVisible:
+      text: "Run agent now"
+    timeout: 60000
+    optional: true   # may stay visible if no LiveAgent overlay flicker
+- assertVisible: "No signals yet"
+- takeScreenshot: q02-zero-result

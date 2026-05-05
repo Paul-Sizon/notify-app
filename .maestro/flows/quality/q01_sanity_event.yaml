@@ -1,0 +1,47 @@
+# Quality: known upcoming event. Mirrors Go's
+# TestQuality_Sanity_KnownUpcoming/coldplay_sao_paulo.
+# Cost: ~$0.04 (1 Brave + 1 OpenAI). Don't add to default sweep.
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../../shared/dismiss_permission.yaml
+
+- runFlow:
+    when:
+      visible: "Add your first watcher"
+    commands:
+      - tapOn: "Add your first watcher"
+- runFlow:
+    when:
+      notVisible: "New watcher"
+    commands:
+      - tapOn: "+"
+
+- tapOn: "Coldplay tour São Paulo 2026"
+- inputText: "Coldplay tour São Paulo 2026"
+- tapOn: "Start watching"
+- assertVisible: "Coldplay tour São Paulo 2026"
+
+- tapOn: "Coldplay tour São Paulo 2026"
+- assertVisible: "Run agent now"
+- tapOn: "Run agent now"
+
+# Agent run = Brave + OpenAI roundtrip. ~20s typical, padded for cold-start.
+- extendedWaitUntil:
+    notVisible: "LIVE AGENT"
+    timeout: 60000
+    optional: true
+- extendedWaitUntil:
+    visible: "Run agent now"
+    timeout: 30000
+# Maestro's plain-string `assertVisible` is an *anchored* regex against
+# accessibilityText — i.e. the whole label must match, not just contain
+# the pattern. Use `.*…` to opt into substring semantics. The header's
+# resolved-date pill ("4 Sep 2026" / "Sep 2027" / etc.) only renders
+# once extraction succeeds, so it's a useful proof-of-success target.
+- extendedWaitUntil:
+    visible: ".*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) 202[6-9].*"
+    timeout: 15000
+- takeScreenshot: q01-coldplay-detail

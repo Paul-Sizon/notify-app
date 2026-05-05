@@ -1,0 +1,35 @@
+# Long-press a watcher card → context menu → Run now.
+# (Delete lives in detail-view toolbar menu — covered by separate flow.)
+# This flow exists to lock down the contextMenu modifier on
+# SubscriptionCard. SwiftUI sometimes drops .contextMenu on iOS 18 betas
+# when the card view is wrapped too deeply; longPress + assertVisible
+# catches that regression.
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../shared/dismiss_permission.yaml
+
+- runFlow:
+    when:
+      visible: "Add your first watcher"
+    commands:
+      - tapOn: "Add your first watcher"
+- runFlow:
+    when:
+      notVisible: "New watcher"
+    commands:
+      - tapOn: "+"
+- tapOn: "Coldplay tour São Paulo 2026"
+- inputText: "Test contextMenu watcher"
+- tapOn: "Start watching"
+
+- longPressOn: "Test contextMenu watcher"
+- assertVisible: "Run now"
+- takeScreenshot: contextmenu-visible
+
+# Tap somewhere else to dismiss menu.
+- tapOn:
+    point: 50%, 95%
+- assertVisible: "Test contextMenu watcher"

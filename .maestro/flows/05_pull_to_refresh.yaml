@@ -1,0 +1,35 @@
+# Pull-to-refresh on Watchers shouldn't crash and must keep an existing
+# subscription visible. Catches regressions where the parallel TaskGroup
+# refresh trips on an empty signalsBySub map (the bug pattern from when
+# we first introduced the parallel fetch).
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../shared/dismiss_permission.yaml
+
+- runFlow:
+    when:
+      visible: "Add your first watcher"
+    commands:
+      - tapOn: "Add your first watcher"
+- runFlow:
+    when:
+      notVisible: "New watcher"
+    commands:
+      - tapOn: "+"
+- tapOn: "Coldplay tour São Paulo 2026"
+- inputText: "F1 Brazilian Grand Prix 2027"
+- tapOn: "Start watching"
+- assertVisible: "F1 Brazilian Grand Prix 2027"
+
+# Pull from header down by ~400px — `swipe` with start/end mac-coords-style
+# normalized 0..1 fractions or with iOS coords.
+- swipe:
+    start: 50%, 25%
+    end:   50%, 75%
+    duration: 600
+
+- assertVisible: "F1 Brazilian Grand Prix 2027"
+- takeScreenshot: pull-to-refresh-stable
