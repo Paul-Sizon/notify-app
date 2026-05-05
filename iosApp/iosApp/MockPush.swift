@@ -36,14 +36,30 @@ final class MockPush: NSObject, UNUserNotificationCenterDelegate {
     }
 
     /// Schedule a local push for a freshly-arrived signal.
-    /// `subscriptionId` doubles as the deep-link target.
+    /// Returns a status string: nil on success, error message otherwise — so
+    /// callers can surface "permission denied" etc. as a toast instead of
+    /// silently failing.
+    @discardableResult
     func deliver(
         title: String,
         body: String,
         subscriptionId: String,
         signalId: String,
         delay: TimeInterval = 0.5
-    ) {
+    ) async -> String? {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        switch settings.authorizationStatus {
+        case .denied:
+            return "Notifications denied — enable in Settings → notify."
+        case .notDetermined:
+            let granted = (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+            if !granted { return "Permission not granted." }
+        case .authorized, .provisional, .ephemeral:
+            break
+        @unknown default:
+            return "Unknown permission state."
+        }
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
@@ -52,9 +68,14 @@ final class MockPush: NSObject, UNUserNotificationCenterDelegate {
             "subscription_id": subscriptionId,
             "signal_id": signalId,
         ]
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(0.1, delay), repeats: false)
         let req = UNNotificationRequest(identifier: "signal-\(signalId)", content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(req)
+        do {
+            try await center.add(req)
+            return nil
+        } catch {
+            return "Schedule failed: \(error.localizedDescription)"
+        }
     }
 
     // Foreground: still show the banner so users see it during dev/demo.

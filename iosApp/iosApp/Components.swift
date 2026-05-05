@@ -202,6 +202,49 @@ struct SectionHeader: View {
     }
 }
 
+// ─── Toast ─────────────────────────────────────────────────────────
+/// Auto-dismissing banner. Bound to a single `String?` — set it, banner
+/// appears with spring; banner clears the binding on a 2.4s timer.
+struct ToastBanner: View {
+    @Binding var message: String?
+    var tone: Tone = .info
+    enum Tone { case info, error
+        var bg: Color { self == .error ? Color(hex: 0x3A1418) : Theme.surfaceHi }
+        var stroke: Color { self == .error ? Theme.danger.opacity(0.5) : Theme.stroke }
+        var icon: String { self == .error ? "exclamationmark.triangle.fill" : "info.circle.fill" }
+        var iconColor: Color { self == .error ? Theme.danger : Theme.accent }
+    }
+
+    var body: some View {
+        Group {
+            if let msg = message {
+                HStack(spacing: 10) {
+                    Image(systemName: tone.icon).foregroundStyle(tone.iconColor)
+                        .font(.system(size: 15, weight: .semibold))
+                    Text(msg).font(Theme.body()).foregroundStyle(Theme.label1)
+                        .lineLimit(3).multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                    Button { withAnimation { message = nil } } label: {
+                        Image(systemName: "xmark").font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Theme.label3).padding(6)
+                    }
+                }
+                .padding(.horizontal, 14).padding(.vertical, 12)
+                .background(RoundedRectangle(cornerRadius: Theme.rMed).fill(tone.bg))
+                .overlay(RoundedRectangle(cornerRadius: Theme.rMed).stroke(tone.stroke, lineWidth: 0.75))
+                .shadow(color: .black.opacity(0.4), radius: 18, y: 8)
+                .padding(.horizontal, 16)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .task(id: msg) {
+                    try? await Task.sleep(nanoseconds: 2_400_000_000)
+                    withAnimation { if message == msg { message = nil } }
+                }
+            }
+        }
+        .animation(.spring(response: 0.36, dampingFraction: 0.82), value: message)
+    }
+}
+
 // ─── Empty State ───────────────────────────────────────────────────
 struct EmptyStateView: View {
     let title: String

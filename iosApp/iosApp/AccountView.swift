@@ -86,16 +86,26 @@ struct AccountView: View {
             settingsGroup("Notifications") {
                 row("Send test notification", icon: "bell.badge", accent: true) {
                     Haptics.tapMedium()
-                    MockPush.shared.deliver(
-                        title: "Test alert",
-                        body: "If you can see this, mocked push works.",
-                        subscriptionId: "debug",
-                        signalId: "debug-\(Date().timeIntervalSince1970)",
-                        delay: 0.6
-                    )
+                    Task {
+                        let err = await MockPush.shared.deliver(
+                            title: "Test alert",
+                            body: "If you can see this, mocked push works.",
+                            subscriptionId: "debug",
+                            signalId: "debug-\(Date().timeIntervalSince1970)",
+                            delay: 0.6
+                        )
+                        if let err {
+                            state.lastError = err
+                        } else {
+                            state.toast = "Test notification scheduled — leave foreground or wait."
+                        }
+                    }
                 }
                 row("Request permission again", icon: "lock.shield") {
-                    Task { _ = await MockPush.shared.requestAuthorization() }
+                    Task {
+                        let granted = await MockPush.shared.requestAuthorization()
+                        state.toast = granted ? "Notifications authorized." : "Permission denied — open Settings."
+                    }
                 }
             }
 

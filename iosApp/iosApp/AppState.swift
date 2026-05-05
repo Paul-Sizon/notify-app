@@ -20,6 +20,7 @@ final class AppState {
 
     var loading: Bool = false
     var lastError: String?
+    var toast: String?
 
     /// Tab index — own state lives here, not in TabView, so we can deep-link
     /// from a notification tap.
@@ -53,9 +54,21 @@ final class AppState {
         do {
             let subs = try await api.listSubscriptions()
             self.subscriptions = subs.sorted { $0.createdAt > $1.createdAt }
-            for sub in subs {
-                let sigs = try await api.listSignals(subscriptionId: sub.id, limit: 30)
-                signalsBySub[sub.id] = sigs
+            // Parallelise signal fetches — N subs = N concurrent requests, not N sequential.
+            let pairs: [(String, [Signal])] = try await withThrowingTaskGroup(of: (String, [Signal]).self) { group in
+                for sub in subs {
+                    let id = sub.id
+                    group.addTask { [api] in
+                        let sigs = try await api.listSignals(subscriptionId: id, limit: 30)
+                        return (id, sigs)
+                    }
+                }
+                var out: [(String, [Signal])] = []
+                for try await pair in group { out.append(pair) }
+                return out
+            }
+            for (id, sigs) in pairs {
+                signalsBySub[id] = sigs
                 for s in sigs { seenSignalIds.insert(s.id) }
             }
         } catch {
@@ -69,9 +82,12 @@ final class AppState {
             subscriptions.insert(s, at: 0)
             signalsBySub[s.id] = []
             Haptics.success()
+            toast = "Watcher added: \(s.query)"
+            // Authoritative resync — guards against local parse drift.
+            await refresh()
         } catch {
             Haptics.error()
-            lastError = "create: \(error.localizedDescription)"
+            lastError = "create failed: \(error.localizedDescription)"
         }
     }
 
@@ -97,12 +113,14 @@ final class AppState {
             signalsBySub[sub.id] = sigs
             for s in newOnes {
                 seenSignalIds.insert(s.id)
-                MockPush.shared.deliver(
+                if let err = await MockPush.shared.deliver(
                     title: sub.query,
                     body: s.title,
                     subscriptionId: sub.id,
                     signalId: s.id
-                )
+                ) {
+                    lastError = err
+                }
             }
             // give the visualizer a beat before dismissing
             try? await Task.sleep(nanoseconds: 600_000_000)

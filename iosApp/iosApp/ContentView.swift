@@ -16,6 +16,15 @@ struct ContentView: View {
                 .environment(state)
                 .padding(.bottom, 92) // leave room for tab bar
 
+            // Toast banners (top of stack)
+            VStack(spacing: 8) {
+                ToastBanner(message: Bindable(state).lastError, tone: .error)
+                ToastBanner(message: Bindable(state).toast, tone: .info)
+                Spacer()
+            }
+            .padding(.top, 50)
+            .allowsHitTesting(state.lastError != nil || state.toast != nil)
+
             // FAB (only on watchers tab, never empty)
             if state.selectedTab == .watchers && !state.subscriptions.isEmpty {
                 GlassFAB { showAdd = true }

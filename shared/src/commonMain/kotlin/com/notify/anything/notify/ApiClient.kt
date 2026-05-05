@@ -76,6 +76,7 @@ class ApiClient(
 
     private fun url(path: String) = "$baseUrl$path"
 
+    @Throws(Throwable::class)
     suspend fun registerDevice(apnsToken: String): String {
         val resp: RegisterDeviceResponse = http.post(url("/v1/devices")) {
             setBody(RegisterDeviceRequest(apnsToken))
@@ -84,9 +85,11 @@ class ApiClient(
         return resp.deviceId
     }
 
+    @Throws(Throwable::class)
     suspend fun listSubscriptions(): List<SubscriptionDTO> =
         http.get(url("/v1/subscriptions")) { authHeader() }.body()
 
+    @Throws(Throwable::class)
     suspend fun createSubscription(
         query: String,
         type: SubscriptionType,
@@ -96,13 +99,16 @@ class ApiClient(
         setBody(CreateSubscriptionRequest(query, type.wire, cadenceSeconds))
     }.body()
 
+    @Throws(Throwable::class)
     suspend fun deleteSubscription(id: String) {
         http.delete(url("/v1/subscriptions/$id")) { authHeader() }
     }
 
+    @Throws(Throwable::class)
     suspend fun runSubscription(id: String): RunResponse =
         http.post(url("/v1/subscriptions/$id/run")) { authHeader() }.body()
 
+    @Throws(Throwable::class)
     suspend fun listSignals(subscriptionId: String, limit: Int = 50, before: String? = null): List<SignalDTO> =
         http.get(url("/v1/subscriptions/$subscriptionId/signals")) {
             authHeader()
