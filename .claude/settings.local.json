@@ -293,7 +293,10 @@
       "Bash(cloudflared tunnel *)",
       "Bash(pkill -f cloudflared)",
       "Bash(xcodebuild -scheme iosApp -project /Users/paulsizon/development/notify/iosApp/iosApp.xcodeproj -destination 'id=00008101-001A0C423620001E' -configuration Debug -allowProvisioningUpdates build)",
-      "Bash(timeout 10 idevicesyslog)"
+      "Bash(timeout 10 idevicesyslog)",
+      "Bash(brew tap *)",
+      "Bash(maestro --version)",
+      "Bash(pkill -f maestro)"
     ]
   },
   "enableAllProjectMcpServers": true,
