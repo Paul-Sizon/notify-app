@@ -7,9 +7,29 @@ import SwiftUI
 /// `@Observable` (Swift 5.9+) re-renders only views that read each property —
 /// no manual `@Published` boilerplate. `Set<String>` of seen signal IDs lets
 /// us detect newly-arrived signals on each run and trigger mock pushes.
-/// Local dev — Go server runs on this URL via `go run ./cmd/server`.
-/// On a physical device, change to your Mac's LAN IP (e.g. http://192.168.1.x:8080).
-let kBackendBaseURL = "http://localhost:8080"
+/// Backend URL store. Persists to UserDefaults so a physical device can be
+/// pointed at a tunnel (e.g. https://*.trycloudflare.com) and remember it
+/// across launches. Sim defaults to localhost.
+enum BackendURL {
+    static let key = "notify.baseURL"
+    #if targetEnvironment(simulator)
+    static let defaultURL = "http://localhost:8080"
+    #else
+    /// Cloudflared quick tunnel — rotates each time `cloudflared tunnel --url`
+    /// restarts. Refresh this constant + reinstall when the URL changes,
+    /// or just edit it via Account → Backend URL on-device.
+    static let defaultURL = "https://courier-organizational-instrumental-monroe.trycloudflare.com"
+    #endif
+
+    static var current: String {
+        UserDefaults.standard.string(forKey: key) ?? defaultURL
+    }
+    static func set(_ url: String) {
+        let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { UserDefaults.standard.removeObject(forKey: key) }
+        else { UserDefaults.standard.set(trimmed, forKey: key) }
+    }
+}
 
 @Observable
 @MainActor
@@ -31,8 +51,21 @@ final class AppState {
 
     let api: ApiService
 
-    init(api: ApiService = ApiService(baseURL: kBackendBaseURL)) {
+    init(api: ApiService = ApiService(baseURL: BackendURL.current)) {
         self.api = api
+    }
+
+    /// Swap backend URL at runtime — clears local state so the new server's
+    /// device id is fetched cleanly. Caller should follow up with `bootstrap()`.
+    func switchBackend(to url: String) async {
+        BackendURL.set(url)
+        api.deviceId = nil
+        subscriptions = []
+        signalsBySub = [:]
+        seenSignalIds = []
+        api.rebuild(baseURL: BackendURL.current)
+        toast = "Backend → \(url)"
+        await bootstrap()
     }
 
     enum Tab: Int, Hashable, CaseIterable {

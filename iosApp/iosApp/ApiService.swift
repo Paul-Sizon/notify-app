@@ -9,7 +9,8 @@ import Shared
 /// 2. Translate KMP DTOs → Swift value types so the rest of the app never
 ///    imports `Shared` directly.
 final class ApiService {
-    private let client: ApiClient
+    private var client: ApiClient
+    private(set) var baseURL: String
     private let store = UserDefaults.standard
     private let deviceIdKey = "notify.deviceId"
 
@@ -23,10 +24,18 @@ final class ApiService {
     }
 
     init(baseURL: String) {
+        self.baseURL = baseURL
         self.client = ApiClient(baseUrl: baseURL, engine: nil, enableLogging: false)
         if let saved = store.string(forKey: deviceIdKey) {
             self.client.deviceId = saved
         }
+    }
+
+    /// Recreate the underlying KMP client against a new origin.
+    /// Caller must clear `deviceId` separately if switching tenants.
+    func rebuild(baseURL: String) {
+        self.baseURL = baseURL
+        self.client = ApiClient(baseUrl: baseURL, engine: nil, enableLogging: false)
     }
 
     /// Ensures `deviceId` is set — registers a fresh device if cold start.

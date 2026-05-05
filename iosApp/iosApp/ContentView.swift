@@ -45,7 +45,9 @@ struct ContentView: View {
         .preferredColorScheme(.dark)
         .task {
             MockPush.shared.bootstrap()
-            _ = await MockPush.shared.requestAuthorization()
+            // Permission ask runs concurrent — don't block backend bootstrap
+            // on user tapping Allow (especially when device is unattended).
+            Task.detached { _ = await MockPush.shared.requestAuthorization() }
             await state.bootstrap()
         }
         .sheet(isPresented: $showAdd) {

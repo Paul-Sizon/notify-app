@@ -6,6 +6,8 @@ import SwiftUI
 struct AccountView: View {
     @Environment(AppState.self) private var state
     @State private var showingResetConfirm = false
+    @State private var showingURLEdit = false
+    @State private var draftURL = ""
 
     var body: some View {
         ScrollView {
@@ -19,6 +21,23 @@ struct AccountView: View {
         }
         .background(Theme.bg.ignoresSafeArea())
         .scrollIndicators(.hidden)
+        .alert("Backend URL", isPresented: $showingURLEdit) {
+            TextField("https://your-tunnel.trycloudflare.com", text: $draftURL)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.URL)
+            Button("Save") {
+                Task {
+                    await state.switchBackend(to: draftURL)
+                }
+            }
+            Button("Reset to localhost", role: .destructive) {
+                Task { await state.switchBackend(to: BackendURL.defaultURL) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Where the iOS app calls the Go backend. Switching clears the local device id; subscriptions on the old server become inaccessible from this device.")
+        }
         .alert("Reset device?", isPresented: $showingResetConfirm) {
             Button("Reset", role: .destructive) {
                 state.api.deviceId = nil
@@ -107,6 +126,31 @@ struct AccountView: View {
                         state.toast = granted ? "Notifications authorized." : "Permission denied — open Settings."
                     }
                 }
+            }
+
+            settingsGroup("Server") {
+                Button {
+                    Haptics.tap()
+                    draftURL = state.api.baseURL
+                    showingURLEdit = true
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .frame(width: 22).foregroundStyle(Theme.label2)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Backend URL").foregroundStyle(Theme.label1).font(Theme.body())
+                            Text(state.api.baseURL)
+                                .font(.system(size: 11, weight: .regular).monospaced())
+                                .foregroundStyle(Theme.label3).lineLimit(1)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Theme.label4)
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 14)
+                    .background(Theme.surface)
+                }
+                .buttonStyle(.plain)
             }
 
             settingsGroup("Agent") {

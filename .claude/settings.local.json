@@ -287,7 +287,13 @@
       "Bash(/Users/paulsizon/development/notify/scripts/sim-tap.sh 220 785)",
       "Bash(brew list *)",
       "Bash(xcrun xctrace *)",
-      "Bash(security find-identity *)"
+      "Bash(security find-identity *)",
+      "Bash(nginx -t -c /Users/paulsizon/development/notify/scripts/nginx.conf)",
+      "Bash(nginx -c /Users/paulsizon/development/notify/scripts/nginx.conf)",
+      "Bash(cloudflared tunnel *)",
+      "Bash(pkill -f cloudflared)",
+      "Bash(xcodebuild -scheme iosApp -project /Users/paulsizon/development/notify/iosApp/iosApp.xcodeproj -destination 'id=00008101-001A0C423620001E' -configuration Debug -allowProvisioningUpdates build)",
+      "Bash(timeout 10 idevicesyslog)"
     ]
   },
   "enableAllProjectMcpServers": true,
