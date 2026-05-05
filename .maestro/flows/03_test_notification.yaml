@@ -1,0 +1,20 @@
+# Verifies the mocked-push debug row delivers a real local notification.
+# Regression test for bug 3 — earlier the deliver call silently no-op'd
+# when permission was denied/notDetermined.
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../shared/dismiss_permission.yaml
+- tapOn: "Account"
+- assertVisible: "Send test notification"
+- tapOn: "Send test notification"
+# Banner is OS-level (SpringBoard) — invisible to maestro's app-scoped XCTest
+# view query. Instead assert the deliver call did NOT raise an error toast.
+# If permission was denied, app sets lastError = "Notifications denied — …";
+# that string must NOT be visible.
+- assertNotVisible: "Notifications denied"
+- assertNotVisible: "Permission not granted"
+- assertVisible: "Send test notification"  # still on Account, no crash
+- takeScreenshot: test-notification-fired

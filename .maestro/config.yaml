@@ -1,0 +1,6 @@
+# Maestro project config — global app id + flows folder.
+# Run all:    maestro test .maestro/flows/
+# Run one:    maestro test .maestro/flows/01_smoke.yaml
+# Studio UI:  maestro studio
+flows:
+  - flows/

@@ -1,0 +1,7 @@
+# Tap "Allow" on the iOS notification permission dialog if shown.
+# `optional: true` on tapOn makes the step skip when dialog is absent.
+appId: com.notify.anything.notify.notify
+---
+- tapOn:
+    text: "Allow"
+    optional: true

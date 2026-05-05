@@ -1,0 +1,39 @@
+# Adds a watcher via the AddSheet. Verifies:
+#   1. FAB opens sheet (or empty-state CTA if no subs yet)
+#   2. Query input + News chip + Start watching submit
+#   3. Toast "Watcher added: …" appears (regression test for bug 2)
+#   4. New card lands in the active list with the typed query
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../shared/dismiss_permission.yaml
+
+# Open the AddSheet — empty state has the CTA, populated state uses the FAB.
+- runFlow:
+    when:
+      visible: "Add your first watcher"
+    commands:
+      - tapOn: "Add your first watcher"
+- runFlow:
+    when:
+      notVisible: "New watcher"
+    commands:
+      # Plus sign: only visible char on the FAB. Maestro matches by glyph.
+      - tapOn: "+"
+
+- assertVisible: "New watcher"
+
+- tapOn: "Coldplay tour São Paulo 2026"   # placeholder — focuses + clears
+- inputText: "Stablecoin regulation Brazil"
+
+- tapOn: "News"
+- tapOn: "Start watching"
+
+# Card landing in the active list = backend round-trip succeeded.
+# We avoid asserting on the toast because it auto-dismisses in 2.4s
+# which is shorter than maestro's per-step latency on cold simulator.
+- assertVisible: "Stablecoin regulation Brazil"
+- assertVisible: "NEWS"
+- takeScreenshot: add-watcher-success

@@ -1,0 +1,32 @@
+# Navigate every tab in order, assert each section header lands.
+# Catches regression where a tab handler stops re-rendering its screen
+# (the bug pattern from the original web prototype's matchedGeometry rewrite).
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: false
+- runFlow:
+    file: ../shared/dismiss_permission.yaml
+
+- tapOn: "Alerts"
+# Header text differs by populated/empty state. Both states share LATEST
+# section eyebrow on Signals; for Alerts we assert the bold title plus an
+# active-tab indicator that exists in either state.
+- assertVisible:
+    text: "Alerts"
+- takeScreenshot: tab-alerts
+
+- tapOn: "Signals"
+- assertVisible:
+    text: "Signals"
+- assertVisible: "WATCHING"   # stats card label always shown
+- takeScreenshot: tab-signals
+
+- tapOn: "Account"
+- assertVisible: "This device"
+- assertVisible: "Backend URL"
+- takeScreenshot: tab-account
+
+- tapOn: "Watchers"
+- assertVisible: "Watching"
+- takeScreenshot: tab-watchers

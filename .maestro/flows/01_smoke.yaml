@@ -1,0 +1,14 @@
+# Smoke: launch the app, dismiss perm prompt if it appears, confirm the
+# Watchers shell rendered. Cheap canary for "did the build deploy at all".
+appId: com.notify.anything.notify.notify
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../shared/dismiss_permission.yaml
+- assertVisible: "Watching"
+- assertVisible: "Watchers"
+- assertVisible: "Alerts"
+- assertVisible: "Signals"
+- assertVisible: "Account"
+- takeScreenshot: smoke-watchers
