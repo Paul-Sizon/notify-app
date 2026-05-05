@@ -17,3 +17,9 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+
+# Maestro drops takeScreenshot output into cwd; keep flows tracked, not pngs.
+/add-watcher-success.png
+/smoke-watchers.png
+/tab-*.png
+/test-notification-fired.png
