@@ -23,3 +23,8 @@ node_modules/
 /smoke-watchers.png
 /tab-*.png
 /test-notification-fired.png
+/pull-to-refresh-stable.png
+/signal-detail-empty.png
+/contextmenu-visible.png
+/account-url-alert.png
+/q*-*.png
