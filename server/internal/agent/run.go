@@ -17,6 +17,7 @@ import (
 type Deps struct {
 	DB        *db.DB
 	Searcher  Searcher
+	Planner   Planner // optional; nil falls back to a passthrough plan (raw query, no gate)
 	Extractor Extractor
 	Pusher    push.Pusher
 	Now       func() time.Time
@@ -34,17 +35,32 @@ func RunSubscription(ctx context.Context, deps Deps, subID uuid.UUID) ([]uuid.UU
 		return nil, fmt.Errorf("load subscription: %w", err)
 	}
 
-	answer, err := deps.Searcher.Answer(ctx, sub.Query)
+	now := deps.Now().UTC()
+	todayISO := now.Format("2006-01-02")
+
+	// Stage A — query plan. Without a planner, we send the raw user query
+	// to Brave; this matches pre-planner behavior (used by stub tests).
+	plan := PassthroughPlan(sub.Query)
+	if deps.Planner != nil {
+		p, err := deps.Planner.PlanQuery(ctx, sub.Query, sub.Type, todayISO)
+		if err != nil {
+			return nil, fmt.Errorf("plan: %w", err)
+		}
+		plan = p
+	}
+
+	// Stage B — web search using the planned question, not the raw query.
+	answer, err := deps.Searcher.Answer(ctx, plan.WebQuestion)
 	if err != nil {
 		return nil, fmt.Errorf("search: %w", err)
 	}
 
-	now := deps.Now().UTC()
 	in := ExtractInput{
 		Query:          sub.Query,
-		TodayISO:       now.Format("2006-01-02"),
+		TodayISO:       todayISO,
 		Answer:         answer.Text,
 		RollingSummary: sub.RollingSummary,
+		Plan:           plan,
 	}
 
 	var (
@@ -57,13 +73,13 @@ func RunSubscription(ctx context.Context, deps Deps, subID uuid.UUID) ([]uuid.UU
 		if err != nil {
 			return nil, fmt.Errorf("extract events: %w", err)
 		}
-		toInsert = eventsToSignals(sub.ID, cands, now)
+		toInsert = eventsToSignals(sub.ID, cands, now, plan)
 	case "news":
 		res, err := deps.Extractor.ExtractNews(ctx, in)
 		if err != nil {
 			return nil, fmt.Errorf("extract news: %w", err)
 		}
-		toInsert = newsToSignals(sub.ID, res.Items)
+		toInsert = newsToSignals(sub.ID, res.Items, plan)
 		updatedSummary = res.UpdatedSummary
 	default:
 		return nil, fmt.Errorf("unknown subscription type: %s", sub.Type)
@@ -124,7 +140,7 @@ func pushNewSignals(ctx context.Context, deps Deps, sub db.Subscription, token s
 	}
 }
 
-func eventsToSignals(subID uuid.UUID, cands []EventCandidate, now time.Time) []db.SignalInsert {
+func eventsToSignals(subID uuid.UUID, cands []EventCandidate, now time.Time, plan QueryPlan) []db.SignalInsert {
 	today := now.UTC().Truncate(24 * time.Hour)
 	out := make([]db.SignalInsert, 0, len(cands))
 	for _, c := range cands {
@@ -146,6 +162,10 @@ func eventsToSignals(subID uuid.UUID, cands []EventCandidate, now time.Time) []d
 		}
 		// Defense in depth: drop past events even if extractor missed the rule.
 		if occurs != nil && occurs.Before(today) {
+			continue
+		}
+		// Plan gate (deterministic; runs after the LLM filter).
+		if !plan.PassesGate(eventBlob(c)) {
 			continue
 		}
 
@@ -179,10 +199,13 @@ func eventsToSignals(subID uuid.UUID, cands []EventCandidate, now time.Time) []d
 	return out
 }
 
-func newsToSignals(subID uuid.UUID, items []NewsCandidate) []db.SignalInsert {
+func newsToSignals(subID uuid.UUID, items []NewsCandidate, plan QueryPlan) []db.SignalInsert {
 	out := make([]db.SignalInsert, 0, len(items))
 	for _, it := range items {
 		if !it.IsNewDevelopment {
+			continue
+		}
+		if !plan.PassesGate(newsBlob(it)) {
 			continue
 		}
 		fp := NewsFingerprint(it.CanonicalHeadline)
@@ -213,6 +236,27 @@ func newsToSignals(subID uuid.UUID, items []NewsCandidate) []db.SignalInsert {
 		})
 	}
 	return out
+}
+
+// eventBlob assembles every text field that the gate inspects for an event
+// candidate, joined by spaces. Pointer dereferences are guarded.
+func eventBlob(c EventCandidate) string {
+	parts := []string{c.Title}
+	for _, p := range []*string{c.Venue, c.City, c.URL} {
+		if p != nil {
+			parts = append(parts, *p)
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
+// newsBlob is the news-side analogue of eventBlob.
+func newsBlob(it NewsCandidate) string {
+	parts := []string{it.Headline, it.CanonicalHeadline, it.Summary}
+	if it.URL != nil {
+		parts = append(parts, *it.URL)
+	}
+	return strings.Join(parts, " ")
 }
 
 func domainsFromURL(u *string) []string {

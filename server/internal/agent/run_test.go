@@ -25,7 +25,7 @@ func TestEventsToSignals_BuildsStableFingerprints(t *testing.T) {
 		{Title: "Coldplay", Date: sP("2026-09-05"), Venue: sP("Allianz Parque"), City: sP("São Paulo"), Confidence: 0.9},
 		{Title: "coldplay", Date: sP("2026-09-05"), Venue: sP("allianz parque"), City: sP("são paulo"), Confidence: 0.9},
 	}
-	sigs := eventsToSignals(subID, cands, now)
+	sigs := eventsToSignals(subID, cands, now, QueryPlan{})
 	require.Len(t, sigs, 2)
 	require.Equal(t, sigs[0].Fingerprint, sigs[1].Fingerprint, "casing should not change fp")
 }
@@ -36,7 +36,7 @@ func TestEventsToSignals_ParsesOccursAt(t *testing.T) {
 	cands := []EventCandidate{
 		{Title: "X", Date: sP("2026-09-05"), Venue: sP("V"), Confidence: 0.9},
 	}
-	sigs := eventsToSignals(subID, cands, now)
+	sigs := eventsToSignals(subID, cands, now, QueryPlan{})
 	require.Len(t, sigs, 1)
 	require.NotNil(t, sigs[0].OccursAt)
 	require.Equal(t, 2026, sigs[0].OccursAt.Year())
@@ -51,7 +51,7 @@ func TestEventsToSignals_DropsPastDates(t *testing.T) {
 		{Title: "Future Show", Date: sP("2026-09-05"), Venue: sP("V"), Confidence: 0.9},
 		{Title: "Undated Show", Date: nil, Venue: sP("V"), Confidence: 0.9},
 	}
-	sigs := eventsToSignals(subID, cands, now)
+	sigs := eventsToSignals(subID, cands, now, QueryPlan{})
 	titles := []string{}
 	for _, s := range sigs {
 		titles = append(titles, s.Title)
@@ -68,7 +68,7 @@ func TestNewsToSignals_DropsNonNewDevelopments(t *testing.T) {
 		{Headline: "A", CanonicalHeadline: "a", IsNewDevelopment: true, Confidence: 0.9},
 		{Headline: "B", CanonicalHeadline: "b", IsNewDevelopment: false, Confidence: 0.9},
 	}
-	sigs := newsToSignals(subID, items)
+	sigs := newsToSignals(subID, items, QueryPlan{})
 	require.Len(t, sigs, 1)
 	require.Equal(t, "A", sigs[0].Title)
 }

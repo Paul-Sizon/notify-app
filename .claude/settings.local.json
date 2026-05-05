@@ -296,7 +296,9 @@
       "Bash(timeout 10 idevicesyslog)",
       "Bash(brew tap *)",
       "Bash(maestro --version)",
-      "Bash(pkill -f maestro)"
+      "Bash(pkill -f maestro)",
+      "Bash(maestro hierarchy *)",
+      "Bash(git check-ignore *)"
     ]
   },
   "enableAllProjectMcpServers": true,

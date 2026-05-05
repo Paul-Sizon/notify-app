@@ -71,6 +71,7 @@ func main() {
 	deps := agent.Deps{
 		DB:        d,
 		Searcher:  searcher,
+		Planner:   extractor,
 		Extractor: extractor,
 		Pusher:    pusher,
 	}

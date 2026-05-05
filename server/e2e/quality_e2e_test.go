@@ -15,6 +15,7 @@ import (
 	"context"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -37,10 +38,12 @@ func newQualityHarness(t *testing.T) *e2e.Client {
 	pool := testhelpers.TestDBPool(t)
 	d := db.New(pool)
 
+	extractor := agent.NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
 	deps := agent.Deps{
 		DB:        d,
 		Searcher:  agent.NewBraveClient(os.Getenv("BRAVE_API_KEY")),
-		Extractor: agent.NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY")),
+		Planner:   extractor,
+		Extractor: extractor,
 		Pusher:    &push.LogPusher{},
 	}
 	runner := func(ctx context.Context, subID uuid.UUID) ([]uuid.UUID, error) {
@@ -257,6 +260,108 @@ func TestQuality_Idempotency_RerunDoesNotInflate(t *testing.T) {
 
 	require.LessOrEqual(t, run2.NewSignals, run1.NewSignals,
 		"re-run must not invent more signals than first run")
+}
+
+// ---------------------------------------------------------------------------
+//                  Strict pipeline tests (planner + gate)
+// ---------------------------------------------------------------------------
+
+// signalBlob renders every text field of a signal that the gate would have
+// inspected, so test assertions match what the pipeline actually filters on.
+func signalBlob(s api.SignalDTO) string {
+	parts := []string{s.Title}
+	if s.Body != nil {
+		parts = append(parts, *s.Body)
+	}
+	if s.URL != nil {
+		parts = append(parts, *s.URL)
+	}
+	return strings.ToLower(strings.Join(parts, " "))
+}
+
+func rejectTributesAndCovers(t *testing.T, sigs []api.SignalDTO) {
+	t.Helper()
+	bad := []string{"tribute", "cover band", "the experience", "coldplay experience", "fan event", "fan club"}
+	for _, s := range sigs {
+		blob := signalBlob(s)
+		for _, b := range bad {
+			require.NotContainsf(t, blob, b,
+				"tribute/cover noise leaked through gate: title=%q body=%v",
+				s.Title, ptrStr(s.Body))
+		}
+	}
+}
+
+// requireBrazilianContext asserts every signal references at least one
+// unambiguous Brazil hint somewhere in its text. We accept either a major
+// Brazilian city or a TLD/keyword. Tribute or out-of-region venues that
+// share an artist name will fail this gate.
+func requireBrazilianContext(t *testing.T, sigs []api.SignalDTO) {
+	t.Helper()
+	hints := []string{
+		"brasil", "brazil",
+		"são paulo", "sao paulo",
+		"rio de janeiro", "curitiba", "porto alegre",
+		"belo horizonte", "interlagos", "allianz parque",
+		"morumbi", "engenhão", "engenhao", "nilton santos",
+		".br/", ".com.br",
+	}
+	for _, s := range sigs {
+		blob := signalBlob(s)
+		matched := false
+		for _, h := range hints {
+			if strings.Contains(blob, h) {
+				matched = true
+				break
+			}
+		}
+		require.Truef(t, matched,
+			"signal lacks any Brazil context — likely off-topic: title=%q body=%v url=%v",
+			s.Title, ptrStr(s.Body), ptrStr(s.URL))
+	}
+}
+
+func ptrStr(p *string) string {
+	if p == nil {
+		return "<nil>"
+	}
+	return *p
+}
+
+// TestQuality_AntiNoise_ColdplayBrazil exercises the full planner→Brave→
+// extractor→gate pipeline against the exact regression that motivated this
+// work: a "Coldplay tour São Paulo 2026" watcher previously surfaced
+// tribute-band shows in Fresno, Minneapolis, and Albany. After the planner
+// reformulates the query to demand primary Brazilian sources and the gate
+// strips anything not mentioning Brazil/SP, we expect zero tribute leakage
+// and zero non-Brazil signals. Loose count assertion — real Coldplay 2026
+// Brazil dates are in flux, so 0 signals is also a valid outcome (the user
+// would rather see nothing than noise).
+func TestQuality_AntiNoise_ColdplayBrazil(t *testing.T) {
+	c := newQualityHarness(t)
+
+	sub, err := c.CreateSubscription("Coldplay tour São Paulo 2026", "event", 3600)
+	require.NoError(t, err)
+
+	_, err = c.RunSubscription(sub.ID)
+	require.NoError(t, err)
+
+	sigs, err := c.ListSignals(sub.ID)
+	require.NoError(t, err)
+
+	t.Logf("coldplay-brazil pipeline returned %d signals (0 is acceptable)", len(sigs))
+	for i, s := range sigs {
+		occ := "no-date"
+		if s.OccursAt != nil {
+			occ = s.OccursAt.Format("2006-01-02")
+		}
+		t.Logf("  [%d] %s | %s | body=%v | conf=%.2f", i, s.Title, occ, ptrStr(s.Body), s.Confidence)
+	}
+
+	allHaveTitleAndConfidence(t, sigs)
+	futureDatesOnly(t, sigs)
+	rejectTributesAndCovers(t, sigs)
+	requireBrazilianContext(t, sigs)
 }
 
 // Anti-ambiguity bucket: query is genuinely ambiguous. Pipeline should pick

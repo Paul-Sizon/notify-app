@@ -29,10 +29,12 @@ func TestE2E_FullStack_RealAPIs(t *testing.T) {
 	pool := testhelpers.TestDBPool(t)
 	d := db.New(pool)
 
+	extractor := agent.NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
 	deps := agent.Deps{
 		DB:        d,
 		Searcher:  agent.NewBraveClient(os.Getenv("BRAVE_API_KEY")),
-		Extractor: agent.NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY")),
+		Planner:   extractor,
+		Extractor: extractor,
 		Pusher:    &push.LogPusher{},
 	}
 	runner := func(ctx context.Context, subID uuid.UUID) ([]uuid.UUID, error) {

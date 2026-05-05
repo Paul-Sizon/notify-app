@@ -7,6 +7,7 @@ type ExtractInput struct {
 	TodayISO       string
 	Answer         string
 	RollingSummary string // news only
+	Plan           QueryPlan
 }
 
 type EventCandidate struct {

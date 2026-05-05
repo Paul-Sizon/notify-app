@@ -33,10 +33,12 @@ func TestRunSubscription_FullPipeline_DedupsOnSecondRun(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	extractor := NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
 	deps := Deps{
 		DB:        d,
 		Searcher:  NewBraveClient(os.Getenv("BRAVE_API_KEY")),
-		Extractor: NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY")),
+		Planner:   extractor,
+		Extractor: extractor,
 	}
 
 	ids1, err := RunSubscription(ctx, deps, sub.ID)
@@ -76,10 +78,12 @@ func TestRunSubscription_News_UpdatesRollingSummary(t *testing.T) {
 		CadenceSeconds: 3600,
 	})
 
+	extractor := NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY"))
 	deps := Deps{
 		DB:        d,
 		Searcher:  NewBraveClient(os.Getenv("BRAVE_API_KEY")),
-		Extractor: NewOpenAIExtractor(os.Getenv("OPENAI_API_KEY")),
+		Planner:   extractor,
+		Extractor: extractor,
 	}
 
 	_, err := RunSubscription(ctx, deps, sub.ID)
