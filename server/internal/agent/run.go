@@ -25,7 +25,13 @@ type Deps struct {
 
 // RunSubscription executes the full agent pipeline for a single subscription.
 // Returns IDs of newly inserted signals (for downstream push delivery).
-func RunSubscription(ctx context.Context, deps Deps, subID uuid.UUID) ([]uuid.UUID, error) {
+//
+// Scheduling contract: this function ALWAYS advances the subscription's
+// next_run_at, on both success and failure. Success: by cadence. Failure:
+// by BackoffDelay based on the error kind. This is what stops the
+// 10-second retry storm — a failing sub gets pushed out of the "due" set
+// for at least minBackoff, instead of being instantly re-due.
+func RunSubscription(ctx context.Context, deps Deps, subID uuid.UUID) (newIDs []uuid.UUID, retErr error) {
 	if deps.Now == nil {
 		deps.Now = time.Now
 	}
@@ -37,6 +43,27 @@ func RunSubscription(ctx context.Context, deps Deps, subID uuid.UUID) ([]uuid.UU
 
 	now := deps.Now().UTC()
 	todayISO := now.Format("2006-01-02")
+
+	// Track the success-path summary so the deferred reschedule can persist
+	// it. Empty string = "no summary update" (events runs).
+	var updatedSummary string
+
+	// One reschedule path for both outcomes. Use a detached context with a
+	// short timeout so we still record state even if the caller's ctx was
+	// just canceled (e.g. server shutting down). Without this, a cancellation
+	// mid-run leaves next_run_at in the past = retry storm on next start.
+	defer func() {
+		persistCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if retErr != nil {
+			kind := ClassifyError(retErr)
+			cadence := time.Duration(sub.CadenceSeconds) * time.Second
+			delay := BackoffDelay(kind, cadence, sub.FailureCount)
+			_ = deps.DB.BackoffSubscription(persistCtx, sub.ID, now, delay, string(kind))
+			return
+		}
+		_ = deps.DB.RescheduleSubscription(persistCtx, sub.ID, now, updatedSummary)
+	}()
 
 	// Stage A — query plan. Without a planner, we send the raw user query
 	// to Brave; this matches pre-planner behavior (used by stub tests).
@@ -63,10 +90,7 @@ func RunSubscription(ctx context.Context, deps Deps, subID uuid.UUID) ([]uuid.UU
 		Plan:           plan,
 	}
 
-	var (
-		toInsert       []db.SignalInsert
-		updatedSummary string
-	)
+	var toInsert []db.SignalInsert
 	switch sub.Type {
 	case "event":
 		cands, err := deps.Extractor.ExtractEvents(ctx, in)
@@ -85,14 +109,12 @@ func RunSubscription(ctx context.Context, deps Deps, subID uuid.UUID) ([]uuid.UU
 		return nil, fmt.Errorf("unknown subscription type: %s", sub.Type)
 	}
 
-	newIDs, err := deps.DB.InsertSignals(ctx, toInsert)
+	newIDs, err = deps.DB.InsertSignals(ctx, toInsert)
 	if err != nil {
 		return nil, fmt.Errorf("insert signals: %w", err)
 	}
-
-	if err := deps.DB.RescheduleSubscription(ctx, sub.ID, now, updatedSummary); err != nil {
-		return nil, fmt.Errorf("reschedule: %w", err)
-	}
+	// Reschedule is handled by the deferred function above (success path
+	// resets failure_count and bumps next_run_at by cadence).
 
 	if deps.Pusher != nil && len(newIDs) > 0 {
 		dev, err := deps.DB.GetDevice(ctx, sub.DeviceID)

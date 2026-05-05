@@ -41,6 +41,12 @@ type Subscription struct {
 	LastRunAt      *time.Time
 	NextRunAt      time.Time
 	CreatedAt      time.Time
+	// FailureCount is the number of consecutive failed runs since the last
+	// success. Reset to 0 by RescheduleSubscription. Used by the scheduler
+	// to apply exponential backoff (delay = base * 2^FailureCount).
+	FailureCount int
+	// LastErrorKind classifies the most recent failure. See agent.ClassifyError.
+	LastErrorKind string
 }
 
 type Signal struct {

@@ -298,7 +298,10 @@
       "Bash(maestro --version)",
       "Bash(pkill -f maestro)",
       "Bash(maestro hierarchy *)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(kill 76901)",
+      "WebFetch(domain:brave.com)",
+      "Bash(make test-integration *)"
     ]
   },
   "enableAllProjectMcpServers": true,

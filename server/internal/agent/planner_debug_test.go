@@ -18,6 +18,11 @@ func TestDebug_FullPipelineTrace(t *testing.T) {
 	if os.Getenv("BRAVE_API_KEY") == "" || os.Getenv("OPENAI_API_KEY") == "" {
 		t.Skip("BRAVE_API_KEY and OPENAI_API_KEY required")
 	}
+	if os.Getenv("RUN_AGENT_DEBUG") == "" {
+		// Diagnostic-only: real Brave + OpenAI, output is informational and
+		// occasionally flaky (LLM nondeterminism). Opt in via RUN_AGENT_DEBUG=1.
+		t.Skip("set RUN_AGENT_DEBUG=1 to run the diagnostic pipeline trace")
+	}
 	queries := []string{
 		"Formula 1 Brazilian Grand Prix Interlagos 2026",
 		"Lollapalooza São Paulo 2026 lineup and dates",
@@ -71,6 +76,9 @@ func TestDebug_PlanQuery_Outputs(t *testing.T) {
 	key := os.Getenv("OPENAI_API_KEY")
 	if key == "" {
 		t.Skip("OPENAI_API_KEY missing")
+	}
+	if os.Getenv("RUN_AGENT_DEBUG") == "" {
+		t.Skip("set RUN_AGENT_DEBUG=1 to run the diagnostic planner trace")
 	}
 	e := NewOpenAIExtractor(key)
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)

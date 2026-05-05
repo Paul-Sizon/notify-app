@@ -12,6 +12,18 @@ import (
 
 const braveChatURL = "https://api.search.brave.com/res/v1/chat/completions"
 
+// BraveError carries the HTTP status from a Brave API failure so callers
+// can classify it (402 = monthly cap, 429 = rate limit, 5xx = transient).
+// Implements the error interface; pair with errors.As to unwrap.
+type BraveError struct {
+	StatusCode int
+	Body       string
+}
+
+func (e *BraveError) Error() string {
+	return fmt.Sprintf("brave http %d: %s", e.StatusCode, truncate(e.Body, 500))
+}
+
 type BraveClient struct {
 	key    string
 	model  string
@@ -98,7 +110,7 @@ func (b *BraveClient) Answer(ctx context.Context, query string) (AnswerResult, e
 		b.rawLog("brave_response", raw)
 	}
 	if resp.StatusCode >= 400 {
-		return AnswerResult{}, fmt.Errorf("brave http %d: %s", resp.StatusCode, truncate(string(raw), 500))
+		return AnswerResult{}, &BraveError{StatusCode: resp.StatusCode, Body: string(raw)}
 	}
 
 	var br braveResponse
