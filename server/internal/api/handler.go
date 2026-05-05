@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -29,6 +30,7 @@ func NewHandler(d *db.DB, runner Runner) *Handler {
 
 func (h *Handler) Routes() http.Handler {
 	r := chi.NewRouter()
+	r.Use(accessLog)
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(200)
 		_, _ = w.Write([]byte("ok"))
@@ -49,6 +51,40 @@ func (h *Handler) Routes() http.Handler {
 }
 
 // --- middleware ---
+
+// statusRecorder wraps ResponseWriter so accessLog can read the status code
+// after the handler runs. Without it, http.ResponseWriter exposes no way
+// to recover the code that was written.
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (s *statusRecorder) WriteHeader(code int) {
+	s.status = code
+	s.ResponseWriter.WriteHeader(code)
+}
+
+// accessLog emits one slog line per request — method, path, status, latency,
+// remote addr. Without this, a misbehaving client (wrong device id, network
+// issue, app pointing at the wrong URL) is invisible: the server only logs
+// scheduler activity, not incoming HTTP. Critical for diagnosing "the app
+// shows an error but the server log is silent."
+func accessLog(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rec := &statusRecorder{ResponseWriter: w, status: 200}
+		next.ServeHTTP(rec, r)
+		slog.Info("http",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"status", rec.status,
+			"dur_ms", time.Since(start).Milliseconds(),
+			"remote", r.RemoteAddr,
+		)
+	})
+}
+
 
 type ctxKey string
 
