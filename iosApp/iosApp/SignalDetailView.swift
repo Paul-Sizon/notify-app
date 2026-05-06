@@ -68,6 +68,7 @@ struct SignalDetailView: View {
         Button {
             Haptics.tapMedium()
             Task { await state.run(subscription) }
+            dismiss()
         } label: {
             HStack(spacing: 10) {
                 ZStack {

@@ -44,6 +44,18 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.dark)
+        // Live-agent overlay — declared before .sheet so sheet presentations
+        // render on top. Otherwise a stuck liveAgentSubId blocks all touches
+        // on any modal the user opens.
+        .overlay {
+            if let runningId = state.liveAgentSubId,
+               let sub = state.subscriptions.first(where: { $0.id == runningId }) {
+                LiveAgentView(subscription: sub)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    .zIndex(100)
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: state.liveAgentSubId)
         .task {
             MockPush.shared.bootstrap()
             // Permission ask runs concurrent — don't block backend bootstrap
@@ -82,16 +94,6 @@ struct ContentView: View {
                 .presentationDragIndicator(.visible)
                 .presentationBackground(Theme.bg)
         }
-        // Live-agent overlay
-        .overlay {
-            if let runningId = state.liveAgentSubId,
-               let sub = state.subscriptions.first(where: { $0.id == runningId }) {
-                LiveAgentView(subscription: sub)
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
-                    .zIndex(100)
-            }
-        }
-        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: state.liveAgentSubId)
         .environment(\.openSubscription, { sub in detailSub = sub })
     }
 
