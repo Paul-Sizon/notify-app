@@ -354,7 +354,8 @@
       "Bash(plutil -p /Users/paulsizon/Library/Developer/Xcode/DerivedData/iosApp-eyzkbnwpbtzdhnbqueuzwrxsihpe/Build/Products/Debug-iphoneos/notify.app/Info.plist)",
       "Bash(xcrun --sdk iphoneos assetutil --info /Users/paulsizon/Library/Developer/Xcode/DerivedData/iosApp-eyzkbnwpbtzdhnbqueuzwrxsihpe/Build/Products/Debug-iphoneos/notify.app/Assets.car)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); icons=[e for e in d if 'AppIcon' in str\\(e.get\\('Name',''\\)\\)]; print\\(json.dumps\\(icons, indent=2\\)\\)\")",
-      "Bash(npm start *)"
+      "Bash(npm start *)",
+      "Bash(vercel --version)"
     ]
   },
   "enableAllProjectMcpServers": true,
