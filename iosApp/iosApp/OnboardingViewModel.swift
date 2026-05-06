@@ -99,6 +99,7 @@ final class OnboardingViewModel {
         inFlight.insert(s.id)
         defer { inFlight.remove(s.id) }
         do {
+            try await appState.api.bootstrapDevice()
             let sub = try await appState.api.createSubscription(
                 query: s.query,
                 type: s.type,
@@ -120,6 +121,7 @@ final class OnboardingViewModel {
         inFlight.insert(s.id)
         defer { inFlight.remove(s.id) }
         do {
+            try await appState.api.bootstrapDevice()
             try await appState.api.deleteSubscription(subId)
             activatedSubIds[s.id] = nil
             appState.removeSubscription(id: subId)
