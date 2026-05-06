@@ -10,8 +10,6 @@ struct SplashView: View {
     let onFinish: () -> Void
 
     @State private var trim: CGFloat = 0
-    @State private var pulse: CGFloat = 0.6
-    @State private var pulseOpacity: Double = 0
 
     private let drawDuration: Double = 1.4
     private let holdDuration: Double = 0.55
@@ -21,11 +19,12 @@ struct SplashView: View {
             Color.black.ignoresSafeArea()
 
             GeometryReader { geo in
+                let waveHeight: CGFloat = 220
                 let waveRect = CGRect(
                     x: 0,
-                    y: geo.size.height / 2 - 110,
+                    y: geo.size.height * 0.42 - waveHeight / 2,
                     width: geo.size.width,
-                    height: 220
+                    height: waveHeight
                 )
 
                 ZStack {
@@ -47,18 +46,6 @@ struct SplashView: View {
                         .shadow(color: Theme.accent.opacity(0.35), radius: 28)
                         .frame(width: waveRect.width, height: waveRect.height)
                         .offset(y: waveRect.minY)
-
-                    // R-peak pulse — radial flash at the spike apex.
-                    Circle()
-                        .fill(Theme.accent)
-                        .frame(width: 14, height: 14)
-                        .scaleEffect(pulse)
-                        .opacity(pulseOpacity)
-                        .shadow(color: Theme.accent, radius: 24)
-                        .position(
-                            x: waveRect.width * 0.46,
-                            y: waveRect.midY - waveRect.height * 0.45
-                        )
                 }
             }
         }
@@ -66,22 +53,9 @@ struct SplashView: View {
     }
 
     private func run() {
-        // Phase 1: draw the trace.
         withAnimation(.easeInOut(duration: drawDuration)) {
             trim = 1
         }
-
-        // Phase 2: flash R-peak right as the spike completes (~46% through draw).
-        let flashAt = drawDuration * 0.55
-        DispatchQueue.main.asyncAfter(deadline: .now() + flashAt) {
-            withAnimation(.easeOut(duration: 0.45)) {
-                pulse = 3.2
-                pulseOpacity = 0
-            }
-            pulseOpacity = 1
-        }
-
-        // Phase 3: hand off.
         DispatchQueue.main.asyncAfter(deadline: .now() + drawDuration + holdDuration) {
             onFinish()
         }
