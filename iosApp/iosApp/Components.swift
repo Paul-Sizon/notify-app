@@ -85,6 +85,7 @@ struct SubscriptionCard: View {
     let confirmedDate: Date?
     let onTap: () -> Void
     let onRun: () -> Void
+    let onDelete: () -> Void
 
     private var isResolved: Bool { confirmedDate != nil }
     private var unread: Bool { (signals.first?.firstSeenAt ?? .distantPast) > Date().addingTimeInterval(-3600) }
@@ -158,6 +159,10 @@ struct SubscriptionCard: View {
                 Haptics.tapMedium()
                 onRun()
             } label: { Label("Run now", systemImage: "play.circle") }
+            Button(role: .destructive) {
+                Haptics.warning()
+                onDelete()
+            } label: { Label("Delete watcher", systemImage: "trash") }
         }
     }
 }

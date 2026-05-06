@@ -14,6 +14,8 @@ type Config struct {
 	OpenAIKey string
 	BraveKey  string
 
+	AdminToken string
+
 	APNs APNsConfig
 }
 
@@ -33,6 +35,7 @@ func Load() (Config, error) {
 		HTTPAddr:    or(os.Getenv("HTTP_ADDR"), ":8080"),
 		OpenAIKey:   os.Getenv("OPENAI_API_KEY"),
 		BraveKey:    os.Getenv("BRAVE_SEARCH_API_KEY"),
+		AdminToken:  os.Getenv("ADMIN_TOKEN"),
 		APNs: APNsConfig{
 			KeyPath:    os.Getenv("APNS_KEY_PATH"),
 			KeyID:      os.Getenv("APNS_KEY_ID"),

@@ -21,9 +21,10 @@ import (
 type Runner func(ctx context.Context, subID uuid.UUID) ([]uuid.UUID, error)
 
 type Handler struct {
-	DB        *db.DB
-	Runner    Runner
-	Suggester agent.Suggester // optional; nil → handler returns fallback list
+	DB         *db.DB
+	Runner     Runner
+	Suggester  agent.Suggester // optional; nil → handler returns fallback list
+	AdminToken string          // empty disables admin routes
 }
 
 func NewHandler(d *db.DB, runner Runner) *Handler {
@@ -34,6 +35,13 @@ func NewHandler(d *db.DB, runner Runner) *Handler {
 // receiver keeps wiring in main fluent without forcing a constructor change.
 func (h *Handler) WithSuggester(s agent.Suggester) *Handler {
 	h.Suggester = s
+	return h
+}
+
+// WithAdminToken enables admin endpoints, gated by `X-Admin-Token: <token>`.
+// Empty token leaves admin endpoints disabled (404).
+func (h *Handler) WithAdminToken(t string) *Handler {
+	h.AdminToken = t
 	return h
 }
 
@@ -55,10 +63,18 @@ func (h *Handler) Routes() http.Handler {
 			r.Use(h.requireDevice)
 			r.Post("/subscriptions", h.createSubscription)
 			r.Get("/subscriptions", h.listSubscriptions)
+			r.Delete("/subscriptions", h.bulkDeleteSubscriptions)
 			r.Delete("/subscriptions/{id}", h.deleteSubscription)
 			r.Get("/subscriptions/{id}/signals", h.listSignals)
 			r.Post("/subscriptions/{id}/run", h.runSubscription)
 		})
+
+		if h.AdminToken != "" {
+			r.Route("/admin", func(r chi.Router) {
+				r.Use(h.requireAdmin)
+				r.Delete("/subscriptions", h.adminNukeSubscriptions)
+			})
+		}
 	})
 	return r
 }

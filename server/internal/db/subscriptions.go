@@ -72,6 +72,26 @@ func (d *DB) DeleteSubscription(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+// DeleteSubscriptionsByDevice removes every subscription belonging to the
+// given device. Cascades to signals via the FK.
+func (d *DB) DeleteSubscriptionsByDevice(ctx context.Context, deviceID uuid.UUID) (int64, error) {
+	tag, err := d.Pool.Exec(ctx, `DELETE FROM subscriptions WHERE device_id = $1`, deviceID)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
+}
+
+// DeleteAllSubscriptions wipes every subscription across every device.
+// Admin-only; signals cascade away too.
+func (d *DB) DeleteAllSubscriptions(ctx context.Context) (int64, error) {
+	tag, err := d.Pool.Exec(ctx, `DELETE FROM subscriptions`)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
+}
+
 // ListDueSubscriptions returns subscriptions whose next_run_at <= now, up to limit.
 func (d *DB) ListDueSubscriptions(ctx context.Context, now time.Time, limit int) ([]Subscription, error) {
 	const q = `SELECT ` + subColumns + `
