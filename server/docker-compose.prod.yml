@@ -15,16 +15,13 @@ services:
       retries: 30
 
   migrate:
-    image: ghcr.io/pressly/goose:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./migrations:/migrations:ro
-    environment:
-      GOOSE_DRIVER: postgres
-      GOOSE_DBSTRING: postgres://notify:notify@postgres:5432/notify?sslmode=disable
-    command: ["-dir", "/migrations", "up"]
+    command: ["postgres", "postgres://notify:notify@postgres:5432/notify?sslmode=disable", "up"]
     restart: "no"
 
   server:
