@@ -7,6 +7,7 @@ import { SignalsScreen } from './screens/SignalsScreen';
 import { AccountScreen } from './screens/AccountScreen';
 import { DetailScreen } from './screens/DetailScreen';
 import { AddSheet } from './screens/AddSheet';
+import { AISuggestionsScreen } from './screens/AISuggestionsScreen';
 import { LiveAgent } from './screens/LiveAgent';
 import { Icon } from './primitives';
 import { useApp } from './state';
@@ -18,6 +19,7 @@ export function App() {
   const [tab, setTab] = useState<TabId>('watchers');
   const [route, setRoute] = useState<{ name: 'home' } | { name: 'detail'; subId: string }>({ name: 'home' });
   const [addOpen, setAddOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [agentOpen, setAgentOpen] = useState(false);
 
   const activeSub = route.name === 'detail' ? app.subs.find(s => s.id === route.subId) ?? null : null;
@@ -56,6 +58,7 @@ export function App() {
             refreshing={app.refreshing}
             onOpen={s => { app.markViewed(s.id); setRoute({ name: 'detail', subId: s.id }); }}
             onAdd={() => setAddOpen(true)}
+            onAI={() => setAiOpen(true)}
             onDelete={app.remove}
           />
         </Screen>
@@ -105,6 +108,15 @@ export function App() {
           open={addOpen}
           onClose={() => setAddOpen(false)}
           onCreate={app.create}
+          onAI={() => { setAddOpen(false); setAiOpen(true); }}
+        />
+
+        <AISuggestionsScreen
+          theme={theme}
+          open={aiOpen}
+          onClose={() => setAiOpen(false)}
+          onCreate={app.create}
+          onDelete={app.remove}
         />
 
         <LiveAgent

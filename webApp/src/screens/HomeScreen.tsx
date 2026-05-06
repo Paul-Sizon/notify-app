@@ -5,12 +5,13 @@ import type { EnrichedSub } from '../state';
 import { cadenceLabel } from '../api';
 
 export function HomeScreen({
-  theme, subs, onOpen, onAdd, onDelete, refreshing,
+  theme, subs, onOpen, onAdd, onAI, onDelete, refreshing,
 }: {
   theme: Theme;
   subs: EnrichedSub[];
   onOpen: (s: EnrichedSub) => void;
   onAdd: () => void;
+  onAI: () => void;
   onDelete: (id: string) => void;
   refreshing: boolean;
 }) {
@@ -52,6 +53,18 @@ export function HomeScreen({
           <Icon name="plus" size={16} weight="bold" color={theme.mode === 'dark' ? '#000' : '#fff'}/>
           Add a watcher
         </button>
+        <button onClick={onAI} style={{
+          padding: '10px 18px', borderRadius: 999,
+          background: 'transparent',
+          color: theme.accent,
+          border: `0.5px solid ${theme.accent}`,
+          fontSize: 14, fontWeight: 600,
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <Icon name="sparkle" size={14} weight="bold" color={theme.accent}/>
+          Try AI suggestions
+        </button>
       </div>
     );
   }
@@ -70,6 +83,22 @@ export function HomeScreen({
             fontSize: 17, fontWeight: 500, color: theme.label3,
             fontVariantNumeric: 'tabular-nums',
           }}>{subs.length}</span>
+          <div style={{ flex: 1 }}/>
+          <button
+            onClick={onAI}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '7px 12px', borderRadius: 999,
+              background: `${theme.accent}26`,
+              border: `0.5px solid ${theme.accent}40`,
+              color: theme.accent,
+              fontSize: 13, fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <Icon name="sparkle" size={12} weight="bold"/>
+            AI
+          </button>
         </div>
         <div style={{ fontSize: 13, color: theme.label3, marginTop: 6, letterSpacing: 0.1 }}>
           {newCount > 0 ? `${newCount} with new signals` : 'All caught up'}

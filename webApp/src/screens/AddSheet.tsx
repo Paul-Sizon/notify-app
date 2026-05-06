@@ -13,12 +13,13 @@ const CADENCE_LABEL: Record<CadenceKey, string> = {
 const SUGGESTIONS = ['blockchain meetups in Lisbon', 'EU AI Act updates', 'Phoebe Bridgers tour'];
 
 export function AddSheet({
-  theme, open, onClose, onCreate,
+  theme, open, onClose, onCreate, onAI,
 }: {
   theme: Theme;
   open: boolean;
   onClose: () => void;
   onCreate: (q: string, type: 'event' | 'news', cadenceSeconds: number) => Promise<unknown>;
+  onAI: () => void;
 }) {
   const [query, setQuery] = useState('');
   const [type, setType] = useState<'event' | 'news'>('event');
@@ -181,6 +182,22 @@ export function AddSheet({
               fontSize: 13, color: theme.label3, lineHeight: 1.4,
               padding: '0 2px', marginBottom: 28, minHeight: 38,
             }}>{hint}</div>
+
+            <button
+              onClick={onAI}
+              style={{
+                width: '100%', padding: '10px 12px', marginBottom: 10,
+                borderRadius: 12, border: 'none',
+                background: 'transparent',
+                color: theme.label2,
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              <Icon name="sparkle" size={13} weight="bold" color={theme.accent}/>
+              <span>Need suggestions? <span style={{ color: theme.accent, fontWeight: 600 }}>Try AI</span></span>
+            </button>
 
             <button onClick={submit} disabled={!valid} style={{
               width: '100%', padding: '16px',

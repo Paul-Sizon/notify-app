@@ -68,6 +68,9 @@ final class MockPush: NSObject, UNUserNotificationCenterDelegate {
             "subscription_id": subscriptionId,
             "signal_id": signalId,
         ]
+        if let attachment = Self.iconAttachment() {
+            content.attachments = [attachment]
+        }
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(0.1, delay), repeats: false)
         let req = UNNotificationRequest(identifier: "signal-\(signalId)", content: content, trigger: trigger)
         do {
@@ -76,6 +79,27 @@ final class MockPush: NSObject, UNUserNotificationCenterDelegate {
         } catch {
             return "Schedule failed: \(error.localizedDescription)"
         }
+    }
+
+    /// Build a `UNNotificationAttachment` from the bundled `NotificationIcon`
+    /// asset. Notifications render the first attachment as the large
+    /// right-side thumbnail in the banner and on the lockscreen — without
+    /// this the slot stays blank. Attachments require an on-disk file URL,
+    /// so we PNG-encode the asset once into `tmp/` and reuse it.
+    private static func iconAttachment() -> UNNotificationAttachment? {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("notify-notification-icon.png")
+        if !FileManager.default.fileExists(atPath: url.path) {
+            guard let img = UIImage(named: "NotificationIcon"),
+                  let data = img.pngData() else { return nil }
+            do { try data.write(to: url, options: .atomic) }
+            catch { return nil }
+        }
+        return try? UNNotificationAttachment(
+            identifier: "notify-icon",
+            url: url,
+            options: [UNNotificationAttachmentOptionsTypeHintKey: "public.png"]
+        )
     }
 
     // Foreground: still show the banner so users see it during dev/demo.

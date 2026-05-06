@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
@@ -36,7 +37,11 @@ object NotifyIcons {
     val CalendarMonth = Icons.Filled.DateRange
     val Check = Icons.Filled.Check
     val CheckCircle = Icons.Filled.CheckCircle
+    val ChevronLeft = Icons.Filled.KeyboardArrowLeft
     val ChevronRight = Icons.Filled.KeyboardArrowRight
+    val Event = Icons.Filled.DateRange
+    val News = Icons.Filled.Info
+    val Sparkles = Icons.Filled.Star
     val Clear = Icons.Filled.Clear
     val Close = Icons.Filled.Close
     val Delete = Icons.Filled.Delete

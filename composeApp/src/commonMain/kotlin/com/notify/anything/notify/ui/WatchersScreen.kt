@@ -8,6 +8,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -68,6 +70,19 @@ fun WatchersScreen(state: AppState) {
                         color = NotifyColors.label3,
                     )
                     Spacer(Modifier.weight(1f))
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(NotifyColors.accentSoft)
+                            .clickable { state.showAISheet = true }
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(NotifyIcons.Sparkles, null, tint = NotifyColors.accent, modifier = Modifier.size(14.dp))
+                        Text("AI", style = NotifyType.caption.copy(fontWeight = FontWeight.SemiBold), color = NotifyColors.accent)
+                    }
+                    Spacer(Modifier.size(8.dp))
                     StatusOrb(loading = state.loading)
                 }
                 Text(

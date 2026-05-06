@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.notify.anything.notify.ApiClient
 import com.notify.anything.notify.BACKEND_URL
+import com.notify.anything.notify.OnboardingSuggestion
 import com.notify.anything.notify.SubscriptionType
 import com.notify.anything.notify.platform.Notifier
 import com.notify.anything.notify.platform.Prefs
@@ -53,6 +54,7 @@ class AppState(
 
     var detailSubscriptionId: String? by mutableStateOf(null)
     var showAddSheet: Boolean by mutableStateOf(false)
+    var showAISheet: Boolean by mutableStateOf(false)
 
     fun bootstrap() {
         scope.launch {
@@ -141,6 +143,45 @@ class AppState(
             } finally {
                 liveAgentSubId = null
             }
+        }
+    }
+
+    suspend fun deleteById(id: String) {
+        try {
+            api.deleteSubscription(id)
+            subscriptions = subscriptions.filterNot { it.id == id }
+            signalsBySub = signalsBySub - id
+        } catch (t: Throwable) {
+            lastError = "delete: ${t.message ?: t.toString()}"
+        }
+    }
+
+    /** AI-from-context suggestion fetch. Stateless on the server; no auth. */
+    suspend fun fetchAISuggestions(contextText: String): Pair<List<OnboardingSuggestion>, Boolean> {
+        val resp = api.suggestFromContext(contextText)
+        return resp.suggestions to resp.fallback
+    }
+
+    /**
+     * Activate a single AI/onboarding suggestion. Returns the new server-side
+     * subscription id on success so the caller can offer undo, or null on
+     * failure (already toast'd via `lastError`).
+     */
+    suspend fun activateSuggestion(s: OnboardingSuggestion): String? {
+        return try {
+            if (api.deviceId == null) {
+                val id = api.registerDevice("compose-mock-${randomToken()}")
+                deviceId = id
+                prefs.putDeviceId(id)
+            }
+            val type = SubscriptionType.fromWire(s.type)
+            val sub = api.createSubscription(s.query, type, s.cadenceSeconds).toDomain()
+            subscriptions = listOf(sub) + subscriptions
+            signalsBySub = signalsBySub + (sub.id to emptyList())
+            sub.id
+        } catch (t: Throwable) {
+            lastError = "AI activate: ${t.message ?: t.toString()}"
+            null
         }
     }
 

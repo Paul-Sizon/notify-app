@@ -94,6 +94,18 @@ export class Api {
 
   runSubscription = (id: string) =>
     request<RunResponse>('POST', `/v1/subscriptions/${id}/run`, undefined, this.deviceId);
+
+  /** Free-text AI suggester. Stateless on the server; no auth. */
+  suggestFromContext = (context: string) =>
+    request<{ suggestions: SuggestionDTO[]; fallback?: boolean }>(
+      'POST', '/v1/suggest/context', { context });
+}
+
+export interface SuggestionDTO {
+  query: string;
+  type: 'event' | 'news';
+  cadence_seconds: number;
+  reason: string;
 }
 
 export const api = new Api();

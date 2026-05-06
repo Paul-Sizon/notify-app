@@ -54,6 +54,7 @@ import kotlin.math.roundToInt
 fun AddSubscriptionSheet(
     onDismiss: () -> Unit,
     onCreate: (String, SubscriptionType, Int) -> Unit,
+    onAI: () -> Unit = {},
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var query by remember { mutableStateOf("") }
@@ -161,6 +162,17 @@ fun AddSubscriptionSheet(
                     count = cadences.size, index = cadenceIndex,
                     onChange = { cadenceIndex = it },
                 )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { onAI() }.padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(NotifyIcons.Sparkles, null, tint = NotifyColors.accent, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.size(8.dp))
+                Text("Need suggestions? ", style = NotifyType.body, color = NotifyColors.label2)
+                Text("Try AI", style = NotifyType.bodyMed, color = NotifyColors.accent)
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {

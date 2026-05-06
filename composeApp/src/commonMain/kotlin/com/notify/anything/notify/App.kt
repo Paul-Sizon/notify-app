@@ -53,6 +53,7 @@ import com.notify.anything.notify.platform.Haptics
 import com.notify.anything.notify.platform.Notifier
 import com.notify.anything.notify.platform.Prefs
 import com.notify.anything.notify.platform.UrlOpener
+import com.notify.anything.notify.ui.AISuggestionsSheet
 import com.notify.anything.notify.ui.AccountScreen
 import com.notify.anything.notify.ui.AddSubscriptionSheet
 import com.notify.anything.notify.ui.AlertsScreen
@@ -155,6 +156,16 @@ fun App(
                 AddSubscriptionSheet(
                     onDismiss = { state.showAddSheet = false },
                     onCreate = { q, t, c -> state.create(q, t, c) },
+                    onAI = {
+                        state.showAddSheet = false
+                        state.showAISheet = true
+                    },
+                )
+            }
+            if (state.showAISheet) {
+                AISuggestionsSheet(
+                    state = state,
+                    onDismiss = { state.showAISheet = false },
                 )
             }
             val detailSub = state.subscriptions.firstOrNull { it.id == state.detailSubscriptionId }
