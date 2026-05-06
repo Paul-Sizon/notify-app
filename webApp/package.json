@@ -1,16 +1,16 @@
 {
   "name": "webApp",
   "version": "1.0.0",
-  "description": "Web application that uses Kotlin Multiplatform Library",
+  "description": "notify web client",
   "type": "module",
   "scripts": {
     "build": "tsc && vite build",
-    "start": "vite"
+    "start": "vite",
+    "dev": "vite"
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "shared": "0.0.0-unspecified"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

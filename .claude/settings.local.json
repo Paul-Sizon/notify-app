@@ -340,7 +340,10 @@
       "Bash(./gradlew :shared:compileKotlinIosArm64 :shared:linkDebugFrameworkIosArm64)",
       "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -configuration Debug build)",
       "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -configuration Debug build ARCHS=arm64 ONLY_ACTIVE_ARCH=YES)",
-      "Bash(./gradlew :composeApp:compileKotlinJvm)"
+      "Bash(./gradlew :composeApp:compileKotlinJvm)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(npm install *)",
+      "Bash(./node_modules/.bin/tsc --version)"
     ]
   },
   "enableAllProjectMcpServers": true,
