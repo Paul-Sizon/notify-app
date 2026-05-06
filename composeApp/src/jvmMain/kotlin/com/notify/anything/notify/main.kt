@@ -19,6 +19,14 @@ fun main() {
     val urlOpener = JvmUrlOpener
     val haptics = NoopHaptics
 
+    // One-shot: drop deviceId minted against the old backend.
+    val migrations = java.util.prefs.Preferences.userRoot().node("com/notify/anything/notify/migrations")
+    if (!migrations.getBoolean("device_cleared_for_pi", false)) {
+        prefs.putDeviceId(null)
+        migrations.putBoolean("device_cleared_for_pi", true)
+        migrations.flush()
+    }
+
     application {
         val state = rememberWindowState(
             size = DpSize(440.dp, 900.dp),

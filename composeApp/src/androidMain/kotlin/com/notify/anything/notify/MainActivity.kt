@@ -1,6 +1,7 @@
 package com.notify.anything.notify
 
 import android.Manifest
+import android.content.Context.MODE_PRIVATE
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +31,13 @@ class MainActivity : ComponentActivity() {
         val prefs = AndroidPrefs(applicationContext)
         val opener = AndroidUrlOpener(applicationContext)
         val haptics = AndroidHaptics(applicationContext)
+
+        // One-shot: drop deviceId minted against the old backend.
+        val migrationFlag = applicationContext.getSharedPreferences("notify_migrations", MODE_PRIVATE)
+        if (!migrationFlag.getBoolean("device_cleared_for_pi", false)) {
+            prefs.putDeviceId(null)
+            migrationFlag.edit().putBoolean("device_cleared_for_pi", true).apply()
+        }
 
         setContent {
             App(
