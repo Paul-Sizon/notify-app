@@ -11,6 +11,7 @@ struct iOSApp: App {
         let migrated = "notify.deviceId.migrated_to_pi"
         if !UserDefaults.standard.bool(forKey: migrated) {
             UserDefaults.standard.removeObject(forKey: "notify.deviceId")
+            UserDefaults.standard.removeObject(forKey: "onboarding_completed_v1")
             UserDefaults.standard.set(true, forKey: migrated)
         }
 
