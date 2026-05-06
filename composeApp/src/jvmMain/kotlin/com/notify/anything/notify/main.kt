@@ -10,8 +10,6 @@ import com.notify.anything.notify.platform.JvmPrefs
 import com.notify.anything.notify.platform.JvmUrlOpener
 import com.notify.anything.notify.platform.NoopHaptics
 
-private const val DEFAULT_BASE_URL = "http://localhost:8080"
-
 fun main() {
     System.setProperty("apple.awt.application.name", "notify")
     System.setProperty("apple.laf.useScreenMenuBar", "true")
@@ -35,7 +33,6 @@ fun main() {
                 prefs = prefs,
                 urlOpener = urlOpener,
                 haptics = haptics,
-                initialBaseUrl = prefs.getBaseUrl() ?: DEFAULT_BASE_URL,
             )
         }
     }

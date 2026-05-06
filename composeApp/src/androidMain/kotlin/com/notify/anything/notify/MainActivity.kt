@@ -13,7 +13,6 @@ import com.notify.anything.notify.platform.AndroidHaptics
 import com.notify.anything.notify.platform.AndroidNotifier
 import com.notify.anything.notify.platform.AndroidPrefs
 import com.notify.anything.notify.platform.AndroidUrlOpener
-import com.notify.anything.notify.platform.ANDROID_DEFAULT_BASE_URL
 
 class MainActivity : ComponentActivity() {
 
@@ -38,7 +37,6 @@ class MainActivity : ComponentActivity() {
                 prefs = prefs,
                 urlOpener = opener,
                 haptics = haptics,
-                initialBaseUrl = ANDROID_DEFAULT_BASE_URL,
             )
         }
     }

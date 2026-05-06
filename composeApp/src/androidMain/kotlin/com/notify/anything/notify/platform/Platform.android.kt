@@ -88,10 +88,6 @@ class AndroidPrefs(ctx: Context) : Prefs {
     override fun putDeviceId(id: String?) {
         sp.edit().apply { if (id == null) remove("device_id") else putString("device_id", id) }.apply()
     }
-    override fun getBaseUrl(): String? = sp.getString("base_url", null)
-    override fun putBaseUrl(url: String?) {
-        sp.edit().apply { if (url.isNullOrBlank()) remove("base_url") else putString("base_url", url) }.apply()
-    }
 }
 
 class AndroidUrlOpener(private val ctx: Context) : UrlOpener {
@@ -102,9 +98,3 @@ class AndroidUrlOpener(private val ctx: Context) : UrlOpener {
         runCatching { ctx.startActivity(intent) }
     }
 }
-
-/**
- * 10.0.2.2 is the Android emulator's loopback alias to the host machine.
- * Physical devices need the cloudflared tunnel — switch via Account tab.
- */
-const val ANDROID_DEFAULT_BASE_URL = "http://10.0.2.2:8080"

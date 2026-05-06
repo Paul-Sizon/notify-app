@@ -76,12 +76,11 @@ fun App(
     prefs: Prefs,
     urlOpener: UrlOpener,
     haptics: Haptics,
-    initialBaseUrl: String,
 ) {
     NotifyTheme {
         ProvideHaptics(haptics) {
             val scope = rememberCoroutineScope()
-            val state = remember { AppState(scope, prefs, notifier, initialBaseUrl) }
+            val state = remember { AppState(scope, prefs, notifier) }
 
             LaunchedEffect(Unit) { state.bootstrap() }
 

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -31,9 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.notify.anything.notify.platform.Notifier
@@ -41,8 +37,6 @@ import com.notify.anything.notify.platform.Notifier
 @Composable
 fun AccountScreen(state: AppState, notifier: Notifier) {
     var showResetConfirm by remember { mutableStateOf(false) }
-    var showUrlEdit by remember { mutableStateOf(false) }
-    var draftUrl by remember { mutableStateOf(state.baseUrl) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(NotifyColors.bg),
@@ -68,19 +62,6 @@ fun AccountScreen(state: AppState, notifier: Notifier) {
                         signalId = "debug-${kotlinx.datetime.Clock.System.now().toEpochMilliseconds()}",
                     )
                     state.toast = "Test notification scheduled."
-                }
-            }
-        }
-
-        item {
-            SettingsGroup("Server", modifier = Modifier.padding(horizontal = 22.dp).padding(bottom = 16.dp)) {
-                SettingsRow(
-                    title = "Backend URL",
-                    subtitle = state.baseUrl,
-                    icon = NotifyIcons.Router,
-                ) {
-                    draftUrl = state.baseUrl
-                    showUrlEdit = true
                 }
             }
         }
@@ -125,53 +106,6 @@ fun AccountScreen(state: AppState, notifier: Notifier) {
         )
     }
 
-    if (showUrlEdit) {
-        AlertDialog(
-            onDismissRequest = { showUrlEdit = false },
-            title = { Text("Backend URL") },
-            text = {
-                Column {
-                    Text(
-                        "Where the app calls the Go backend. Switching clears the local device id.",
-                        style = NotifyType.caption, color = NotifyColors.label2,
-                        modifier = Modifier.padding(bottom = 12.dp),
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(NotifyColors.surface)
-                            .border(0.5.dp, NotifyColors.strokeHi, RoundedCornerShape(10.dp))
-                            .padding(12.dp),
-                    ) {
-                        BasicTextField(
-                            value = draftUrl,
-                            onValueChange = { draftUrl = it },
-                            singleLine = true,
-                            cursorBrush = SolidColor(NotifyColors.accent),
-                            textStyle = TextStyle(color = NotifyColors.label1, fontFamily = FontFamily.Monospace),
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Row {
-                    TextButton(onClick = {
-                        showUrlEdit = false
-                        state.switchBackend(draftUrl.trim())
-                    }) { Text("Save") }
-                    TextButton(onClick = {
-                        showUrlEdit = false
-                        state.switchBackend(state.defaultBaseUrl)
-                    }) { Text("Reset to localhost", color = NotifyColors.danger) }
-                }
-            },
-            dismissButton = { TextButton(onClick = { showUrlEdit = false }) { Text("Cancel") } },
-            containerColor = NotifyColors.bgElevated,
-            titleContentColor = NotifyColors.label1,
-            textContentColor = NotifyColors.label2,
-        )
-    }
 }
 
 @Composable

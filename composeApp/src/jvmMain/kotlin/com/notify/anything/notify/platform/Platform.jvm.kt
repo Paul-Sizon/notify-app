@@ -14,11 +14,6 @@ class JvmPrefs(node: String = "com/notify/anything/notify") : Prefs {
         if (id == null) p.remove("device_id") else p.put("device_id", id)
         p.flush()
     }
-    override fun getBaseUrl(): String? = p.get("base_url", null)
-    override fun putBaseUrl(url: String?) {
-        if (url.isNullOrBlank()) p.remove("base_url") else p.put("base_url", url)
-        p.flush()
-    }
 }
 
 object JvmUrlOpener : UrlOpener {

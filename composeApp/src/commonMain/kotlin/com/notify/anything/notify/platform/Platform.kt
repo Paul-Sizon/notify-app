@@ -16,8 +16,6 @@ interface Haptics {
 interface Prefs {
     fun getDeviceId(): String?
     fun putDeviceId(id: String?)
-    fun getBaseUrl(): String?
-    fun putBaseUrl(url: String?)
 }
 
 interface UrlOpener {
@@ -38,9 +36,6 @@ object NoopHaptics : Haptics {
 object NoopUrlOpener : UrlOpener { override fun open(url: String) {} }
 class InMemoryPrefs : Prefs {
     private var deviceId: String? = null
-    private var baseUrl: String? = null
     override fun getDeviceId() = deviceId
     override fun putDeviceId(id: String?) { deviceId = id }
-    override fun getBaseUrl() = baseUrl
-    override fun putBaseUrl(url: String?) { baseUrl = url }
 }

@@ -31,13 +31,6 @@ final class ApiService {
         }
     }
 
-    /// Recreate the underlying KMP client against a new origin.
-    /// Caller must clear `deviceId` separately if switching tenants.
-    func rebuild(baseURL: String) {
-        self.baseURL = baseURL
-        self.client = ApiClient(baseUrl: baseURL, engine: nil, enableLogging: false)
-    }
-
     /// Ensures `deviceId` is set — registers a fresh device if cold start.
     /// `apnsToken` is a placeholder for the mocked-push build; pass any
     /// stable string. The Go backend validates it's non-empty.

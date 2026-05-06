@@ -7,38 +7,9 @@ import SwiftUI
 /// `@Observable` (Swift 5.9+) re-renders only views that read each property —
 /// no manual `@Published` boilerplate. `Set<String>` of seen signal IDs lets
 /// us detect newly-arrived signals on each run and trigger mock pushes.
-/// Backend URL store. Hardcoded per build target — sim hits localhost,
-/// physical device hits the dev cloudflared tunnel. Any prior UserDefaults
-/// override is ignored and cleared on launch, so a stale persisted URL from
-/// an earlier tunnel rotation can't poison the next run.
+/// Backend URL — hardcoded, served from the Pi via Tailscale Funnel.
 enum BackendURL {
-    static let key = "notify.baseURL"
-    #if targetEnvironment(simulator)
-    static let defaultURL = "http://localhost:8080"
-    #else
-    /// Cloudflared quick tunnel — rotates each time `cloudflared tunnel --url`
-    /// restarts. Refresh this constant + reinstall when the URL changes.
-    static let defaultURL = "https://courier-organizational-instrumental-monroe.trycloudflare.com"
-    #endif
-
-    /// Source of truth: the build-time constant. UserDefaults is no longer
-    /// consulted — the Account tab editor still calls `set` for the runtime
-    /// session via `switchBackend`, but persisted state can't override the
-    /// next cold launch.
-    static var current: String { defaultURL }
-
-    static func set(_ url: String) {
-        let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty { UserDefaults.standard.removeObject(forKey: key) }
-        else { UserDefaults.standard.set(trimmed, forKey: key) }
-    }
-
-    /// Wipe any legacy persisted override left over from earlier builds.
-    /// Called once on app start so the next read of `current` is purely
-    /// the hardcoded constant.
-    static func clearLegacyOverride() {
-        UserDefaults.standard.removeObject(forKey: key)
-    }
+    static let url = "https://raspberrypi.taile76757.ts.net"
 }
 
 @Observable
@@ -61,21 +32,8 @@ final class AppState {
 
     let api: ApiService
 
-    init(api: ApiService = ApiService(baseURL: BackendURL.current)) {
+    init(api: ApiService = ApiService(baseURL: BackendURL.url)) {
         self.api = api
-    }
-
-    /// Swap backend URL at runtime — clears local state so the new server's
-    /// device id is fetched cleanly. Caller should follow up with `bootstrap()`.
-    func switchBackend(to url: String) async {
-        BackendURL.set(url)
-        api.deviceId = nil
-        subscriptions = []
-        signalsBySub = [:]
-        seenSignalIds = []
-        api.rebuild(baseURL: BackendURL.current)
-        toast = "Backend → \(url)"
-        await bootstrap()
     }
 
     enum Tab: Int, Hashable, CaseIterable {

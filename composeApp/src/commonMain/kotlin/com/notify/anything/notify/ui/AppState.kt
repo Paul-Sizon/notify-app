@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.notify.anything.notify.ApiClient
+import com.notify.anything.notify.BACKEND_URL
 import com.notify.anything.notify.SubscriptionType
 import com.notify.anything.notify.platform.Notifier
 import com.notify.anything.notify.platform.Prefs
@@ -24,12 +25,10 @@ class AppState(
     val scope: CoroutineScope,
     private val prefs: Prefs,
     private val notifier: Notifier,
-    val defaultBaseUrl: String,
 ) {
-    var baseUrl: String by mutableStateOf(prefs.getBaseUrl() ?: defaultBaseUrl)
-        private set
+    val baseUrl: String = BACKEND_URL
 
-    private var api: ApiClient = ApiClient(baseUrl)
+    private val api: ApiClient = ApiClient(baseUrl)
 
     var deviceId: String? by mutableStateOf(prefs.getDeviceId()?.also { api.deviceId = it })
         private set
@@ -142,24 +141,6 @@ class AppState(
             } finally {
                 liveAgentSubId = null
             }
-        }
-    }
-
-    fun switchBackend(url: String) {
-        scope.launch {
-            try {
-                api.close()
-            } catch (_: Throwable) {}
-            baseUrl = url
-            prefs.putBaseUrl(url)
-            prefs.putDeviceId(null)
-            api = ApiClient(url)
-            deviceId = null
-            subscriptions = emptyList()
-            signalsBySub = emptyMap()
-            seenSignalIds.clear()
-            toast = "Backend → $url"
-            bootstrap()
         }
     }
 

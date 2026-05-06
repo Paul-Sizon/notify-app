@@ -8,8 +8,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/v1': { target: 'http://localhost:8080', changeOrigin: true },
-      '/healthz': { target: 'http://localhost:8080', changeOrigin: true },
+      '/v1': { target: 'https://raspberrypi.taile76757.ts.net', changeOrigin: true, secure: true },
+      '/healthz': { target: 'https://raspberrypi.taile76757.ts.net', changeOrigin: true, secure: true },
     },
   },
 });
