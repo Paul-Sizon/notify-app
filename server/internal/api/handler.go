@@ -49,6 +49,7 @@ func (h *Handler) Routes() http.Handler {
 		// Onboarding suggest is intentionally device-less — first launch
 		// flow runs before /devices in some clients (web preview, demo).
 		r.Post("/onboarding/suggest", h.suggestOnboarding)
+		r.Post("/suggest/context", h.suggestFromContext)
 
 		r.Group(func(r chi.Router) {
 			r.Use(h.requireDevice)

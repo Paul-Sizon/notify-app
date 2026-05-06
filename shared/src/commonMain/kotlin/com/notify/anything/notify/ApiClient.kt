@@ -118,6 +118,16 @@ class ApiClient(
     suspend fun suggestOnboarding(req: OnboardingRequest): OnboardingResponse =
         http.post(url("/v1/onboarding/suggest")) { setBody(req) }.body()
 
+    /**
+     * Free-text AI suggester. User describes their interests/projects in
+     * 10–2000 chars; server returns 5–7 watcher suggestions.
+     */
+    @Throws(Throwable::class)
+    suspend fun suggestFromContext(context: String): OnboardingResponse =
+        http.post(url("/v1/suggest/context")) {
+            setBody(ContextSuggestRequest(context))
+        }.body()
+
     @Throws(Throwable::class)
     suspend fun listSignals(subscriptionId: String, limit: Int = 50, before: String? = null): List<SignalDTO> =
         http.get(url("/v1/subscriptions/$subscriptionId/signals")) {

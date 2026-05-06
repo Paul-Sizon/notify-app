@@ -7,6 +7,7 @@ struct WatchersView: View {
     @Environment(AppState.self) private var state
     @Environment(\.openSubscription) private var openSubscription
     let onAdd: () -> Void
+    let onAI: () -> Void
 
     var body: some View {
         ScrollView {
@@ -52,12 +53,30 @@ struct WatchersView: View {
                     .font(.system(size: 22, weight: .regular).monospacedDigit())
                     .foregroundStyle(Theme.label3)
                 Spacer()
+                aiButton
                 statusOrb
             }
             Text("Quiet by default. Loud when it matters.")
                 .font(Theme.body())
                 .foregroundStyle(Theme.label2)
         }
+    }
+
+    private var aiButton: some View {
+        Button {
+            Haptics.tap()
+            onAI()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles").font(.system(size: 12, weight: .bold))
+                Text("AI").font(.system(size: 13, weight: .semibold))
+            }
+            .foregroundStyle(Theme.accent)
+            .padding(.horizontal, 12).padding(.vertical, 7)
+            .background(Capsule().fill(Theme.accentSoft))
+            .overlay(Capsule().stroke(Theme.accent.opacity(0.3), lineWidth: 0.5))
+        }
+        .buttonStyle(PressableStyle())
     }
 
     private var statusOrb: some View {

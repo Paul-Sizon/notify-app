@@ -64,6 +64,20 @@ final class ApiService {
         return Int(resp.newSignals)
     }
 
+    /// Free-text AI suggester. Stateless, no auth.
+    func suggestFromContext(_ context: String) async throws -> OnboardingResult {
+        let resp = try await client.suggestFromContext(context: context)
+        let sugs = resp.suggestions.map { dto -> OnboardingSuggestion in
+            OnboardingSuggestion(
+                query: dto.query,
+                type: SubscriptionKind(wire: dto.type),
+                cadenceSeconds: Int(dto.cadenceSeconds),
+                reason: dto.reason
+            )
+        }
+        return OnboardingResult(suggestions: sugs, fallback: resp.fallback)
+    }
+
     /// Onboarding suggest call. Stateless on the server; safe to retry.
     /// Does NOT require `bootstrapDevice()` first — the endpoint has no auth.
     func suggestOnboarding(

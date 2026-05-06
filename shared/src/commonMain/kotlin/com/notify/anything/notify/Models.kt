@@ -89,3 +89,8 @@ data class OnboardingResponse(
     val suggestions: List<OnboardingSuggestion>,
     val fallback: Boolean = false,
 )
+
+@Serializable
+data class ContextSuggestRequest(
+    val context: String,
+)

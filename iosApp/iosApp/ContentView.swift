@@ -5,6 +5,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var state = AppState()
     @State private var showAdd = false
+    @State private var showAI = false
     @State private var detailSub: Subscription?
     @State private var showOnboarding: Bool = !OnboardingFlags.completed
 
@@ -79,13 +80,28 @@ struct ContentView: View {
             .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showAdd) {
-            AddSubscriptionSheet { query, type, cadence in
-                Task { await state.create(query: query, type: type, cadenceSeconds: cadence) }
-            }
+            AddSubscriptionSheet(
+                onCreate: { query, type, cadence in
+                    Task { await state.create(query: query, type: type, cadenceSeconds: cadence) }
+                },
+                onAI: {
+                    showAdd = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showAI = true }
+                }
+            )
             .environment(state)
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationBackground(Theme.bgElevated)
+        }
+        .sheet(isPresented: $showAI) {
+            NavigationStack {
+                AISuggestionsView()
+            }
+            .environment(state)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(Theme.bg)
         }
         .sheet(item: $detailSub) { sub in
             SignalDetailView(subscription: sub)
@@ -100,7 +116,7 @@ struct ContentView: View {
     @ViewBuilder
     private var currentTab: some View {
         switch state.selectedTab {
-        case .watchers: WatchersView(onAdd: { showAdd = true })
+        case .watchers: WatchersView(onAdd: { showAdd = true }, onAI: { showAI = true })
         case .alerts:   AlertsView()
         case .signals:  SignalsView()
         case .account:  AccountView()

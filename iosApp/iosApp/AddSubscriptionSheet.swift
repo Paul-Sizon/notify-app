@@ -11,6 +11,7 @@ struct AddSubscriptionSheet: View {
     @FocusState private var queryFocused: Bool
 
     let onCreate: (String, SubscriptionKind, Int) -> Void
+    let onAI: () -> Void
 
     private static let cadences: [(label: String, seconds: Int)] = [
         ("15 min", 15 * 60),
@@ -144,7 +145,32 @@ struct AddSubscriptionSheet: View {
         .frame(height: 22)
     }
 
+    private var aiLink: some View {
+        Button {
+            Haptics.tap()
+            queryFocused = false
+            onAI()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Theme.accent)
+                Text("Need suggestions? ")
+                    .foregroundStyle(Theme.label2)
+                + Text("Try AI")
+                    .foregroundStyle(Theme.accent)
+                    .fontWeight(.semibold)
+            }
+            .font(.system(size: 14))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+        }
+        .buttonStyle(PressableStyle())
+    }
+
     private var footer: some View {
+        VStack(spacing: 0) {
+        aiLink
         HStack(spacing: 10) {
             Button {
                 Haptics.tap()
@@ -178,7 +204,8 @@ struct AddSubscriptionSheet: View {
             .buttonStyle(PressableStyle())
             .disabled(query.trimmingCharacters(in: .whitespacesAndNewlines).count < 3)
         }
-        .padding(.horizontal, 22).padding(.top, 14).padding(.bottom, 26)
+        .padding(.horizontal, 22).padding(.top, 6).padding(.bottom, 26)
+        }
         .background(
             Theme.bgElevated
                 .overlay(Rectangle().fill(Theme.stroke).frame(height: 0.5), alignment: .top)
