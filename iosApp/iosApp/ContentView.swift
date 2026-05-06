@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var state = AppState()
     @State private var showAdd = false
     @State private var detailSub: Subscription?
+    @State private var showOnboarding: Bool = !OnboardingFlags.completed
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -49,6 +50,21 @@ struct ContentView: View {
             // on user tapping Allow (especially when device is unattended).
             Task.detached { _ = await MockPush.shared.requestAuthorization() }
             await state.bootstrap()
+            // Existing-user hack (spec §5): if the user already has watchers,
+            // they pre-date the onboarding feature — don't drop them into the
+            // flow. Mark complete and dismiss.
+            if !state.subscriptions.isEmpty && !OnboardingFlags.completed {
+                OnboardingFlags.completed = true
+                showOnboarding = false
+            }
+        }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingFlowView(appState: state) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                    showOnboarding = false
+                }
+            }
+            .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showAdd) {
             AddSubscriptionSheet { query, type, cadence in

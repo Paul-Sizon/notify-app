@@ -336,7 +336,10 @@
       "Bash(mkdir -p design)",
       "Bash(tar -xzf design.tar.gz -C design)",
       "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS Simulator' -configuration Debug build CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO)",
-      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS Simulator' -configuration Debug build CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES)"
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS Simulator' -configuration Debug build CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES)",
+      "Bash(./gradlew :shared:compileKotlinIosArm64 :shared:linkDebugFrameworkIosArm64)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -configuration Debug build)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -configuration Debug build ARCHS=arm64 ONLY_ACTIVE_ARCH=YES)"
     ]
   },
   "enableAllProjectMcpServers": true,

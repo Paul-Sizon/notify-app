@@ -71,6 +71,34 @@ final class ApiService {
         return Int(resp.newSignals)
     }
 
+    /// Onboarding suggest call. Stateless on the server; safe to retry.
+    /// Does NOT require `bootstrapDevice()` first — the endpoint has no auth.
+    func suggestOnboarding(
+        city: String,
+        country: String,
+        role: OnboardingRole,
+        roleOther: String?,
+        interests: [OnboardingInterest]
+    ) async throws -> OnboardingResult {
+        let req = OnboardingRequest(
+            city: city,
+            country: country,
+            role: role.wire,
+            roleOther: roleOther,
+            interests: interests.map { $0.wire }
+        )
+        let resp = try await client.suggestOnboarding(req: req)
+        let sugs = resp.suggestions.map { dto -> OnboardingSuggestion in
+            OnboardingSuggestion(
+                query: dto.query,
+                type: SubscriptionKind(wire: dto.type),
+                cadenceSeconds: Int(dto.cadenceSeconds),
+                reason: dto.reason
+            )
+        }
+        return OnboardingResult(suggestions: sugs, fallback: resp.fallback)
+    }
+
     func listSignals(subscriptionId: String, limit: Int = 50) async throws -> [Signal] {
         let dtos = try await client.listSignals(
             subscriptionId: subscriptionId,

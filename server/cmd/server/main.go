@@ -104,7 +104,7 @@ func main() {
 	}
 	go sched.Loop(ctx)
 
-	h := api.NewHandler(d, runner)
+	h := api.NewHandler(d, runner).WithSuggester(agent.NewOpenAISuggester(cfg.OpenAIKey))
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           h.Routes(),

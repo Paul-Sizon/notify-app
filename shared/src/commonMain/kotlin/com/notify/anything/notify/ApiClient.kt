@@ -108,6 +108,16 @@ class ApiClient(
     suspend fun runSubscription(id: String): RunResponse =
         http.post(url("/v1/subscriptions/$id/run")) { authHeader() }.body()
 
+    /**
+     * First-launch onboarding: returns 5–7 watcher suggestions tailored to the
+     * user. Stateless on the server — does not require a registered device,
+     * does not write to the DB. Client persists nothing here; the client
+     * activates suggestions one-by-one via [createSubscription].
+     */
+    @Throws(Throwable::class)
+    suspend fun suggestOnboarding(req: OnboardingRequest): OnboardingResponse =
+        http.post(url("/v1/onboarding/suggest")) { setBody(req) }.body()
+
     @Throws(Throwable::class)
     suspend fun listSignals(subscriptionId: String, limit: Int = 50, before: String? = null): List<SignalDTO> =
         http.get(url("/v1/subscriptions/$subscriptionId/signals")) {

@@ -64,3 +64,28 @@ enum class SubscriptionType(val wire: String) {
         }
     }
 }
+
+// --- onboarding ---
+
+@Serializable
+data class OnboardingRequest(
+    val city: String,
+    val country: String,
+    val role: String,
+    @SerialName("role_other") val roleOther: String? = null,
+    val interests: List<String>,
+)
+
+@Serializable
+data class OnboardingSuggestion(
+    val query: String,
+    val type: String,
+    @SerialName("cadence_seconds") val cadenceSeconds: Int,
+    val reason: String,
+)
+
+@Serializable
+data class OnboardingResponse(
+    val suggestions: List<OnboardingSuggestion>,
+    val fallback: Boolean = false,
+)

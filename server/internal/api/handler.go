@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"github.com/paulsizon/notify/server/internal/agent"
 	"github.com/paulsizon/notify/server/internal/db"
 )
 
@@ -20,12 +21,20 @@ import (
 type Runner func(ctx context.Context, subID uuid.UUID) ([]uuid.UUID, error)
 
 type Handler struct {
-	DB     *db.DB
-	Runner Runner
+	DB        *db.DB
+	Runner    Runner
+	Suggester agent.Suggester // optional; nil → handler returns fallback list
 }
 
 func NewHandler(d *db.DB, runner Runner) *Handler {
 	return &Handler{DB: d, Runner: runner}
+}
+
+// WithSuggester attaches the LLM-backed onboarding suggester. Returning the
+// receiver keeps wiring in main fluent without forcing a constructor change.
+func (h *Handler) WithSuggester(s agent.Suggester) *Handler {
+	h.Suggester = s
+	return h
 }
 
 func (h *Handler) Routes() http.Handler {
@@ -37,6 +46,9 @@ func (h *Handler) Routes() http.Handler {
 	})
 	r.Route("/v1", func(r chi.Router) {
 		r.Post("/devices", h.registerDevice)
+		// Onboarding suggest is intentionally device-less — first launch
+		// flow runs before /devices in some clients (web preview, demo).
+		r.Post("/onboarding/suggest", h.suggestOnboarding)
 
 		r.Group(func(r chi.Router) {
 			r.Use(h.requireDevice)

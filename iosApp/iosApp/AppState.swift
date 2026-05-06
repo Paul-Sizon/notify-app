@@ -181,6 +181,21 @@ final class AppState {
         }
     }
 
+    /// Onboarding-side helper: drop a freshly-created subscription into local
+    /// state so the home screen shows it immediately when onboarding dismisses,
+    /// without waiting for a refresh round-trip.
+    func injectSubscription(_ s: Subscription) {
+        if !subscriptions.contains(where: { $0.id == s.id }) {
+            subscriptions.insert(s, at: 0)
+            signalsBySub[s.id] = []
+        }
+    }
+
+    func removeSubscription(id: String) {
+        subscriptions.removeAll { $0.id == id }
+        signalsBySub[id] = nil
+    }
+
     // ─── Derived ───
     func signals(for subId: String) -> [Signal] { signalsBySub[subId] ?? [] }
 
