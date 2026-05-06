@@ -47,8 +47,12 @@ fun SignalsScreen(state: AppState) {
                 modifier = Modifier.padding(horizontal = 22.dp).padding(top = 8.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text("Signals", style = NotifyType.title1, color = NotifyColors.label1)
-                Text("Everything the agents have surfaced.", style = NotifyType.body, color = NotifyColors.label2)
+                Text("Signals", style = NotifyType.largeTitle, color = NotifyColors.label1)
+                Text(
+                    "The firehose. Everything the agent surfaced.",
+                    style = NotifyType.caption,
+                    color = NotifyColors.label3,
+                )
             }
         }
 

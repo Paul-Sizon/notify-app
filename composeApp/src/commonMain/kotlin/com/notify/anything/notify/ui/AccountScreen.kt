@@ -51,8 +51,8 @@ fun AccountScreen(state: AppState, notifier: Notifier) {
         item {
             Text(
                 "Account",
-                style = NotifyType.title1, color = NotifyColors.label1,
-                modifier = Modifier.padding(horizontal = 22.dp).padding(top = 8.dp, bottom = 16.dp),
+                style = NotifyType.largeTitle, color = NotifyColors.label1,
+                modifier = Modifier.padding(horizontal = 20.dp).padding(top = 24.dp, bottom = 24.dp),
             )
         }
         item { DeviceCard(state, modifier = Modifier.padding(horizontal = 22.dp).padding(bottom = 16.dp)) }

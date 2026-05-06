@@ -331,7 +331,10 @@
       "Bash(sed -i '' 's|F1 Brazilian Grand Prix 2027|brazil grand prix tickets|g' 05_pull_to_refresh.yaml)",
       "Bash(sed -i '' 's|Lollapalooza São Paulo 2027|lollapalooza tickets|g' 06_signal_detail.yaml)",
       "Bash(sed -i '' 's|Test contextMenu watcher|sample watcher|g' 07_delete_watcher.yaml)",
-      "Bash(adb exec-out *)"
+      "Bash(adb exec-out *)",
+      "Bash(cp \"/Users/paulsizon/.claude/projects/-Users-paulsizon-development-notify/69a447b2-39ab-4ca4-b7d0-be7638136577/tool-results/webfetch-1778028234176-ve60ur.bin\" design.tar.gz)",
+      "Bash(mkdir -p design)",
+      "Bash(tar -xzf design.tar.gz -C design)"
     ]
   },
   "enableAllProjectMcpServers": true,

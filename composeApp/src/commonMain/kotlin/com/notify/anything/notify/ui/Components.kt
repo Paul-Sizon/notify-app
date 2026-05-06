@@ -50,6 +50,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.notify.anything.notify.SubscriptionType
@@ -60,49 +61,80 @@ import kotlin.math.sin
 import kotlin.time.Duration.Companion.hours
 
 /* ──────── Type pill ──────── */
+/**
+ * iOS-style pill chip — translucent grey on neutral surfaces, accent
+ * variant for "live signal" cues. Sized for inline use inside watcher
+ * card metadata rows. Per design tokens: 22px height, 9px h-padding.
+ */
 @Composable
-fun TypePill(type: SubscriptionType) {
-    val label = if (type == SubscriptionType.EVENT) "EVENT" else "NEWS"
-    val icon = if (type == SubscriptionType.EVENT) NotifyIcons.CalendarMonth else NotifyIcons.Newspaper
+fun NotifyChip(
+    text: String,
+    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    accent: Boolean = false,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
             .clip(RoundedCornerShape(999.dp))
-            .background(NotifyColors.surfaceHi.copy(alpha = 0.5f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .background(if (accent) NotifyColors.accentSoft else NotifyColors.chipBg)
+            .padding(horizontal = 9.dp, vertical = 3.dp),
     ) {
-        Icon(icon, null, tint = NotifyColors.label3, modifier = Modifier.size(11.dp))
-        Text(label, style = NotifyType.eyebrow, color = NotifyColors.label3)
+        if (leadingIcon != null) {
+            Icon(
+                leadingIcon, null,
+                tint = if (accent) NotifyColors.accent else NotifyColors.label2,
+                modifier = Modifier.size(10.dp),
+            )
+        }
+        Text(
+            text,
+            style = NotifyType.footnote.copy(fontSize = 12.sp, fontWeight = FontWeight.Medium),
+            color = if (accent) NotifyColors.accent else NotifyColors.label2,
+        )
     }
 }
 
-/* ──────── Cadence chip ──────── */
+@Composable
+fun TypePill(type: SubscriptionType) {
+    val label = if (type == SubscriptionType.EVENT) "event" else "news"
+    val icon = if (type == SubscriptionType.EVENT) NotifyIcons.CalendarMonth else NotifyIcons.Newspaper
+    NotifyChip(text = label, leadingIcon = icon)
+}
+
+/**
+ * Cadence chip lives inside the metadata row beneath a watcher's query.
+ * Wording follows the design's "every Xh" copy convention.
+ */
 @Composable
 fun CadenceChip(cadenceSeconds: Int, lastRunAt: kotlinx.datetime.Instant?) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(NotifyColors.surfaceMute)
-            .border(0.5.dp, NotifyColors.stroke, RoundedCornerShape(999.dp))
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    ) {
-        Box(
-            modifier = Modifier.size(5.dp).clip(CircleShape).background(NotifyColors.accent),
-        )
-        Text(cadenceLabel(cadenceSeconds), style = NotifyType.eyebrow, color = NotifyColors.label2)
-        Text("·", style = NotifyType.eyebrow, color = NotifyColors.label4)
-        Text(
-            if (lastRunAt == null) "NEVER" else relativeShort(lastRunAt),
-            style = NotifyType.eyebrow,
-            color = NotifyColors.label3,
-        )
+    NotifyChip(text = "every ${cadenceShort(cadenceSeconds)}")
+}
+
+private fun cadenceShort(seconds: Int): String {
+    val h = seconds / 3600
+    val m = (seconds % 3600) / 60
+    return when {
+        h >= 24 -> "${h / 24}d"
+        h >= 1 -> if (m == 0) "${h}h" else "${h}h${m}m"
+        else -> "${m}m"
     }
 }
 
-/* ──────── Subscription card ──────── */
+/**
+ * Watcher card — matches the Claude Design layout.
+ *
+ * Active state: bgElev2 surface, 16dp radius, query at 17/600, metadata
+ * chips beneath (type · cadence · "new" with wave glyph if unread). Right
+ * column holds the relative last-run timestamp and a chevron. Unread
+ * watchers gain a 6px red-orange dot offset off the left edge with a
+ * glow shadow — the iOS lockscreen "new" cue.
+ *
+ * Resolved state: muted bgElev (surfaceMute), strikethrough query,
+ * answer line led with a tiny check icon, optional answer subtitle, and
+ * an accent-stamped date in the right column with "RESOLVED" eyebrow
+ * underneath. Long-press for run/delete menu.
+ */
 @Composable
 fun SubscriptionCard(
     subscription: Subscription,
@@ -117,88 +149,124 @@ fun SubscriptionCard(
         ?: kotlinx.datetime.Instant.DISTANT_PAST) > Clock.System.now().minus(1.hours)
     var showMenu by remember { mutableStateOf(false) }
 
-    @OptIn(ExperimentalFoundationApi::class)
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(if (isResolved) NotifyColors.surfaceMute else NotifyColors.surface)
-            .border(0.5.dp, NotifyColors.stroke, RoundedCornerShape(20.dp))
-            .combinedClickable(
-                onClick = { onTap() },
-                onLongClick = { showMenu = true },
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // Unread dot lives outside the card, kissing the left edge with a
+        // soft glow. Position constants pulled from design (left = -4,
+        // top = padV + 8 ≈ 28).
+        if (unread && !isResolved) {
+            Box(
+                modifier = Modifier
+                    .padding(start = 0.dp, top = 28.dp)
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(NotifyColors.accent),
             )
-            .padding(18.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TypePill(subscription.type)
-            Spacer(Modifier.weight(1f))
-            when {
-                isResolved -> Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(NotifyColors.accentSoft)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                ) {
-                    Text("RESOLVED", style = NotifyType.eyebrow, color = NotifyColors.accent)
-                }
-                unread -> Box(
-                    modifier = Modifier.size(8.dp).clip(CircleShape).background(NotifyColors.accent),
-                )
-                else -> {}
-            }
-            Spacer(Modifier.width(6.dp))
-            Box {
-                Box(
-                    modifier = Modifier.size(28.dp).clip(CircleShape).clickable { showMenu = true },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(NotifyIcons.MoreHoriz, null, tint = NotifyColors.label3, modifier = Modifier.size(18.dp))
-                }
-                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Run now") },
-                        onClick = { showMenu = false; onRun() },
-                        leadingIcon = { Icon(NotifyIcons.PlayArrow, null) },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Delete", color = NotifyColors.danger) },
-                        onClick = { showMenu = false; onDelete() },
-                    )
-                }
-            }
         }
-        Text(
-            subscription.query,
-            style = NotifyType.title3,
-            color = if (isResolved) NotifyColors.label2 else NotifyColors.label1,
-            maxLines = 2,
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (confirmedDate != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(NotifyIcons.CalendarMonth, null, tint = NotifyColors.accent, modifier = Modifier.size(14.dp))
+
+        @OptIn(ExperimentalFoundationApi::class)
+        Row(
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(if (isResolved) NotifyColors.surfaceMute else NotifyColors.surface)
+                .combinedClickable(
+                    onClick = { onTap() },
+                    onLongClick = { showMenu = true },
+                )
+                .padding(horizontal = 16.dp, vertical = 18.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    subscription.query,
+                    style = NotifyType.title3,
+                    color = if (isResolved) NotifyColors.label2 else NotifyColors.label1,
+                    textDecoration = if (isResolved)
+                        androidx.compose.ui.text.style.TextDecoration.LineThrough
+                    else null,
+                    maxLines = 2,
+                )
+                Spacer(Modifier.height(8.dp))
+
+                if (isResolved && confirmedDate != null) {
+                    // Resolved: check + answer summary + date sub
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    ) {
+                        Icon(
+                            NotifyIcons.Check, null,
+                            tint = NotifyColors.accent,
+                            modifier = Modifier.size(12.dp),
+                        )
+                        Text(
+                            "Confirmed " + formatEventDate(confirmedDate),
+                            style = NotifyType.caption.copy(fontWeight = FontWeight.Medium),
+                            color = NotifyColors.label1,
+                        )
+                    }
                     Text(
-                        formatEventDate(confirmedDate),
-                        style = NotifyType.bodyMed.copy(fontSize = 13.sp),
-                        color = NotifyColors.accent,
+                        "Agent has stopped checking — pull a card from history to re-arm.",
+                        style = NotifyType.footnote,
+                        color = NotifyColors.label3,
+                        maxLines = 2,
+                    )
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        TypePill(subscription.type)
+                        CadenceChip(subscription.cadenceSeconds, subscription.lastRunAt)
+                        if (unread) {
+                            NotifyChip(text = "new", accent = true)
+                        }
+                    }
+                }
+            }
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.padding(top = 2.dp),
+            ) {
+                Text(
+                    text = if (isResolved && confirmedDate != null)
+                        formatEventDate(confirmedDate)
+                    else subscription.lastRunAt?.let { relativeShort(it) } ?: "NEVER",
+                    style = NotifyType.footnote.copy(
+                        fontWeight = if (isResolved) FontWeight.SemiBold else FontWeight.Normal,
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = if (isResolved) 0.2.sp else 0.sp,
+                    ),
+                    color = if (isResolved) NotifyColors.accent else NotifyColors.label3,
+                )
+                if (isResolved) {
+                    Text(
+                        "RESOLVED",
+                        style = NotifyType.eyebrow.copy(fontSize = 10.sp),
+                        color = NotifyColors.label4,
+                    )
+                } else {
+                    Icon(
+                        NotifyIcons.ChevronRight, null,
+                        tint = NotifyColors.label4,
+                        modifier = Modifier.size(14.dp),
                     )
                 }
-            } else {
-                CadenceChip(subscription.cadenceSeconds, subscription.lastRunAt)
             }
-            Spacer(Modifier.weight(1f))
-            Text(
-                "${signals.size}",
-                style = NotifyType.bodyMed.copy(fontSize = 13.sp, fontFamily = FontFamily.Monospace),
-                color = NotifyColors.label2,
-            )
-            Spacer(Modifier.width(6.dp))
-            Icon(NotifyIcons.GraphicEq, null, tint = NotifyColors.label3, modifier = Modifier.size(13.dp))
+            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                DropdownMenuItem(
+                    text = { Text("Run now") },
+                    onClick = { showMenu = false; onRun() },
+                    leadingIcon = { Icon(NotifyIcons.PlayArrow, null) },
+                )
+                DropdownMenuItem(
+                    text = { Text("Delete", color = NotifyColors.danger) },
+                    onClick = { showMenu = false; onDelete() },
+                )
+            }
         }
     }
 }

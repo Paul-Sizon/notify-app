@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +33,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -39,33 +41,42 @@ import androidx.compose.ui.unit.sp
 fun WatchersScreen(state: AppState) {
     val active = state.activeSubscriptions
     val resolved = state.resolvedSubscriptions
+    val unreadCount = active.count { sub ->
+        val first = state.signals(sub.id).firstOrNull()?.firstSeenAt
+            ?: kotlinx.datetime.Instant.DISTANT_PAST
+        first > kotlinx.datetime.Clock.System.now().minus(kotlin.time.Duration.parse("PT24H"))
+    }
     val animatedCount by animateIntAsState(
         targetValue = active.size, animationSpec = tween(450), label = "watching-count",
     )
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(NotifyColors.bg),
-        contentPadding = PaddingValues(top = 8.dp, bottom = 120.dp),
+        contentPadding = PaddingValues(top = 36.dp, bottom = 200.dp),
     ) {
         item {
             Column(
-                modifier = Modifier.padding(horizontal = 22.dp).padding(top = 8.dp, bottom = 16.dp),
+                modifier = Modifier.padding(horizontal = 20.dp).padding(top = 24.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text("Watching", style = NotifyType.title1, color = NotifyColors.label1)
-                    Spacer(Modifier.size(8.dp))
+                    Text("Watching", style = NotifyType.largeTitle, color = NotifyColors.label1)
+                    Spacer(Modifier.size(10.dp))
                     Text(
                         "$animatedCount",
-                        style = NotifyType.title2.copy(fontFamily = FontFamily.Monospace, fontSize = 22.sp),
+                        style = NotifyType.title3.copy(fontWeight = FontWeight.Medium),
                         color = NotifyColors.label3,
                     )
                     Spacer(Modifier.weight(1f))
                     StatusOrb(loading = state.loading)
                 }
                 Text(
-                    "Quiet by default. Loud when it matters.",
-                    style = NotifyType.body, color = NotifyColors.label2,
+                    text = buildString {
+                        append("$unreadCount new since yesterday")
+                        if (resolved.isNotEmpty()) append(" · ${resolved.size} resolved")
+                    },
+                    style = NotifyType.caption,
+                    color = NotifyColors.label3,
                 )
             }
         }
@@ -99,18 +110,40 @@ fun WatchersScreen(state: AppState) {
 
             if (resolved.isNotEmpty()) {
                 item {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 22.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    Column(
+                        modifier = Modifier.padding(horizontal = 22.dp).padding(top = 24.dp, bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Text("RESOLVED · PAUSED", style = NotifyType.eyebrow, color = NotifyColors.label3)
-                        Box(modifier = Modifier.weight(1f).height(1.dp).background(NotifyColors.stroke))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(
+                                NotifyIcons.Check, null,
+                                tint = NotifyColors.label3,
+                                modifier = Modifier.size(11.dp),
+                            )
+                            Text(
+                                "RESOLVED",
+                                style = NotifyType.eyebrow,
+                                color = NotifyColors.label3,
+                            )
+                            Text(
+                                "· paused",
+                                style = NotifyType.eyebrow.copy(fontWeight = FontWeight.Medium),
+                                color = NotifyColors.label4,
+                            )
+                        }
+                        Text(
+                            "These have a confirmed answer. Agent stopped checking.",
+                            style = NotifyType.footnote,
+                            color = NotifyColors.label3,
+                        )
                     }
                 }
                 items(resolved, key = { it.id }) { sub ->
                     AnimatedListEntry {
-                        Box(modifier = Modifier.padding(horizontal = 22.dp, vertical = 6.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
                             SubscriptionCard(
                                 subscription = sub,
                                 signals = state.signals(sub.id),
@@ -120,6 +153,33 @@ fun WatchersScreen(state: AppState) {
                                 onDelete = { state.delete(sub) },
                             )
                         }
+                    }
+                }
+            }
+
+            // Footer hint
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 24.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            NotifyIcons.Refresh, null,
+                            tint = NotifyColors.label4,
+                            modifier = Modifier.size(11.dp),
+                        )
+                        Text(
+                            "Pull down to run all active",
+                            style = NotifyType.footnote.copy(fontSize = 11.sp, letterSpacing = 0.3.sp),
+                            color = NotifyColors.label4,
+                        )
                     }
                 }
             }

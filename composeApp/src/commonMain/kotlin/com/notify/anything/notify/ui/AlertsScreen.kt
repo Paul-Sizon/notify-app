@@ -39,7 +39,7 @@ fun AlertsScreen(state: AppState) {
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text("Alerts", style = NotifyType.title1, color = NotifyColors.label1)
+                    Text("Alerts", style = NotifyType.largeTitle, color = NotifyColors.label1)
                     Spacer(Modifier.size(8.dp))
                     Text(
                         "$animatedCount",

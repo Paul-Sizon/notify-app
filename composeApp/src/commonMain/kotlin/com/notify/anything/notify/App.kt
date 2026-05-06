@@ -172,96 +172,184 @@ fun App(
 }
 
 /**
- * Bottom nav with a single sliding pill indicator that animates between
- * the four tab cells. Avoids the visual stutter of "highlight off / new
- * highlight on" you get with per-cell background swaps.
+ * Bottom nav per Claude Design handoff: flat, no pill, no border. The
+ * surface is a vertical gradient that fades from transparent at the top
+ * down to the page background — content underneath the bar scrolls
+ * softly out of view rather than getting cropped by a hard divider.
  */
 @Composable
 private fun BottomTabs(active: Tab, onChange: (Tab) -> Unit) {
     val tabs = listOf(
-        Tab.WATCHERS to ("Watchers" to NotifyIcons.Visibility),
-        Tab.ALERTS to ("Alerts" to NotifyIcons.Notifications),
-        Tab.SIGNALS to ("Signals" to NotifyIcons.GraphicEq),
-        Tab.ACCOUNT to ("Account" to NotifyIcons.AccountCircle),
+        Tab.WATCHERS to ("Watchers" to TabKind.WATCHERS),
+        Tab.ALERTS to ("Alerts" to TabKind.ALERTS),
+        Tab.SIGNALS to ("Signals" to TabKind.SIGNALS),
+        Tab.ACCOUNT to ("Account" to TabKind.ACCOUNT),
     )
-    BoxWithConstraints(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(NotifyColors.surface.copy(alpha = 0.96f))
-            .padding(top = 10.dp)
+            .background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    0.0f to Color.Transparent,
+                    0.30f to NotifyColors.bg.copy(alpha = 0.85f),
+                    0.70f to NotifyColors.bg,
+                    1.0f to NotifyColors.bg,
+                ),
+            )
+            .padding(top = 18.dp)
             .navigationBarsPadding()
-            .padding(bottom = 8.dp)
-            .height(74.dp),
+            .padding(bottom = 14.dp),
     ) {
-        val cellWidth = maxWidth / tabs.size
-        val activeIndex = tabs.indexOfFirst { it.first == active }.coerceAtLeast(0)
-        val pillWidth = 52.dp
-        val indicatorOffset by animateDpAsState(
-            targetValue = cellWidth * activeIndex + (cellWidth - pillWidth) / 2,
-            animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow),
-            label = "tab-indicator",
-        )
-        Box(
-            modifier = Modifier
-                .offset(x = indicatorOffset, y = 0.dp)
-                .padding(top = 4.dp)
-                .size(width = pillWidth, height = 32.dp)
-                .clip(CircleShape)
-                .background(NotifyColors.accentSoft),
-        )
         Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             for ((tab, label) in tabs) {
-                TabCell(active == tab, label.first, label.second) { onChange(tab) }
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    TabCell(active == tab, label.first, label.second) { onChange(tab) }
+                }
             }
         }
     }
 }
 
+private enum class TabKind { WATCHERS, ALERTS, SIGNALS, ACCOUNT }
+
 @Composable
 private fun TabCell(
     isActive: Boolean,
     label: String,
-    icon: ImageVector,
+    kind: TabKind,
     onTap: () -> Unit,
 ) {
-    val iconScale by animateFloatAsState(
-        targetValue = if (isActive) 1.12f else 1f,
+    // Inactive tabs sit at 0.98x to give the active one a subtle pop without
+    // any backdrop chip — keeps the design's flat look.
+    val cellScale by animateFloatAsState(
+        targetValue = if (isActive) 1f else 0.98f,
         animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
-        label = "tab-icon",
+        label = "tab-cell",
     )
     val tint by animateColor(
-        if (isActive) NotifyColors.accent else NotifyColors.label2,
-    )
-    val textColor by animateColor(
         if (isActive) NotifyColors.accent else NotifyColors.label3,
     )
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
+            .scale(cellScale)
             .clip(RoundedCornerShape(12.dp))
-            .softClick(pressScale = 0.9f, haptic = { selection() }) { onTap() }
-            .padding(horizontal = 14.dp, vertical = 4.dp),
+            .softClick(pressScale = 0.92f, haptic = { selection() }) { onTap() }
+            .padding(horizontal = 4.dp, vertical = 8.dp),
     ) {
-        Box(
-            modifier = Modifier.size(width = 52.dp, height = 32.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                icon, null,
-                tint = tint,
-                modifier = Modifier.size(19.dp).scale(iconScale),
-            )
-        }
+        TabGlyph(kind, active = isActive, color = tint)
         Text(
             label,
-            style = NotifyType.eyebrow.copy(fontSize = 10.sp, letterSpacing = 0.2.sp),
-            color = textColor,
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = 11.sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                letterSpacing = 0.1.sp,
+            ),
+            color = tint,
         )
+    }
+}
+
+/**
+ * Hand-drawn line/fill tab icons matching the design's SVG paths in
+ * `tab-bar.jsx`. Compose-Multiplatform 1.10 doesn't ship outlined icon
+ * variants, so we render the four glyphs ourselves with `Canvas` —
+ * cheaper than dragging in a 3000-icon extended set just for these.
+ */
+@Composable
+private fun TabGlyph(kind: TabKind, active: Boolean, color: Color) {
+    val size = 22.dp
+    androidx.compose.foundation.Canvas(modifier = Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val sx = w / 24f
+        val sy = h / 24f
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = 1.7f * sx,
+            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+            join = androidx.compose.ui.graphics.StrokeJoin.Round,
+        )
+        when (kind) {
+            TabKind.WATCHERS -> {
+                // Eye outline + center pupil (filled when active)
+                val eye = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(2f * sx, 12f * sy)
+                    cubicTo(2f * sx, 12f * sy, 5.5f * sx, 5f * sy, 12f * sx, 5f * sy)
+                    cubicTo(18.5f * sx, 5f * sy, 22f * sx, 12f * sy, 22f * sx, 12f * sy)
+                    cubicTo(22f * sx, 12f * sy, 18.5f * sx, 19f * sy, 12f * sx, 19f * sy)
+                    cubicTo(5.5f * sx, 19f * sy, 2f * sx, 12f * sy, 2f * sx, 12f * sy)
+                    close()
+                }
+                if (active) drawPath(eye, color = color.copy(alpha = 0.18f))
+                drawPath(eye, color = color, style = stroke)
+                if (active) {
+                    drawCircle(color, radius = 3f * sx, center = androidx.compose.ui.geometry.Offset(12f * sx, 12f * sy))
+                } else {
+                    drawCircle(color, radius = 3f * sx, center = androidx.compose.ui.geometry.Offset(12f * sx, 12f * sy), style = stroke)
+                }
+            }
+            TabKind.ALERTS -> {
+                // Bell outline (filled when active)
+                val bell = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(18f * sx, 16f * sy)
+                    lineTo(18f * sx, 11f * sy)
+                    cubicTo(18f * sx, 7.7f * sy, 15.3f * sx, 5f * sy, 12f * sx, 5f * sy)
+                    cubicTo(8.7f * sx, 5f * sy, 6f * sx, 7.7f * sy, 6f * sx, 11f * sy)
+                    lineTo(6f * sx, 16f * sy)
+                    lineTo(4f * sx, 19f * sy)
+                    lineTo(20f * sx, 19f * sy)
+                    close()
+                }
+                if (active) drawPath(bell, color = color.copy(alpha = 0.18f))
+                drawPath(bell, color = color, style = stroke)
+                // Clapper
+                val clapper = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(10f * sx, 21f * sy)
+                    cubicTo(10f * sx, 22.1f * sy, 10.9f * sx, 23f * sy, 12f * sx, 23f * sy)
+                    cubicTo(13.1f * sx, 23f * sy, 14f * sx, 22.1f * sy, 14f * sx, 21f * sy)
+                }
+                drawPath(clapper, color = color, style = stroke)
+            }
+            TabKind.SIGNALS -> {
+                // Spark line: zigzag with a dot at top-right
+                val spark = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(3f * sx, 17f * sy)
+                    lineTo(8f * sx, 11f * sy)
+                    lineTo(12f * sx, 14f * sy)
+                    lineTo(17f * sx, 7f * sy)
+                    lineTo(21f * sx, 12f * sy)
+                }
+                drawPath(spark, color = color, style = stroke)
+                drawCircle(color, radius = 1.4f * sx, center = androidx.compose.ui.geometry.Offset(17f * sx, 7f * sy))
+            }
+            TabKind.ACCOUNT -> {
+                // Person: head circle + shoulders arc
+                if (active) {
+                    drawCircle(
+                        color = color.copy(alpha = 0.18f),
+                        radius = 4f * sx,
+                        center = androidx.compose.ui.geometry.Offset(12f * sx, 9f * sy),
+                    )
+                }
+                drawCircle(
+                    color = color,
+                    radius = 4f * sx,
+                    center = androidx.compose.ui.geometry.Offset(12f * sx, 9f * sy),
+                    style = stroke,
+                )
+                val shoulders = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(4f * sx, 21f * sy)
+                    cubicTo(4f * sx, 17f * sy, 8f * sx, 15f * sy, 12f * sx, 15f * sy)
+                    cubicTo(16f * sx, 15f * sy, 20f * sx, 17f * sy, 20f * sx, 21f * sy)
+                }
+                drawPath(shoulders, color = color, style = stroke)
+            }
+        }
     }
 }
 
