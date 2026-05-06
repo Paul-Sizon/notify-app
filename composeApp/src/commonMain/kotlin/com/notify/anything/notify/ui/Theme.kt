@@ -20,36 +20,36 @@ import androidx.compose.ui.unit.sp
  * theme matches the SwiftUI sibling app pixel-for-pixel.
  */
 object NotifyColors {
-    // Surfaces — pure black ground, neutral grey elevations
-    val bg          = Color(0xFF000000)
-    val bgElevated  = Color(0xFF0E0E10)   // bgElev1 (sectioned background)
-    val surface     = Color(0xFF1C1C1E)   // bgElev2 (cards)
-    val surfaceHi   = Color(0xFF2C2C2E)   // bgElev3 (track / divider fills)
-    val surfaceMute = Color(0xFF141416)   // resolved card
+    // Surfaces — mirror iosApp/Theme.swift dark palette
+    val bg          = Color(0xFF0A0A0C)
+    val bgElevated  = Color(0xFF141417)
+    val surface     = Color(0xFF18181C)
+    val surfaceHi   = Color(0xFF1F1F24)
+    val surfaceMute = Color(0xFF101013)
 
-    val separator   = Color(0x73545458)   // 0.45 opacity grey
+    val separator   = Color(0x1FFFFFFF)   // strokeHi 12%
     val stroke      = Color(0x0FFFFFFF)   // hairline 6%
-    val strokeHi    = Color(0x14FFFFFF)   // glassBorder 8%
+    val strokeHi    = Color(0x1FFFFFFF)   // 12%
 
-    // iOS label hierarchy — pre-multiplied alpha against white
+    // White-tinted label hierarchy matches iOS Color.white.opacity(...)
     val label1      = Color(0xFFFFFFFF)
-    val label2      = Color(0xC7EBEBF5)
-    val label3      = Color(0x80EBEBF5)
-    val label4      = Color(0x4CEBEBF5)
+    val label2      = Color(0x9EFFFFFF)   // 62%
+    val label3      = Color(0x61FFFFFF)   // 38%
+    val label4      = Color(0x38FFFFFF)   // 22%
 
-    val chipBg      = Color(0x3D767680)   // systemGray translucent
+    val chipBg      = Color(0x14FFFFFF)   // 8% white
 
-    // Accent — deep amber per design handoff
-    val accent      = Color(0xFFFF9F1C)
-    val accentSoft  = Color(0x29FF9F1C)
-    val accentGlow  = Color(0x73FF9F1C)
-    val accentInk   = Color(0xFF000000)   // text on accent fills (dark mode = black)
+    // Accent — signal green
+    val accent      = Color(0xFF3DD68C)
+    val accentSoft  = Color(0x293DD68C)
+    val accentGlow  = Color(0x733DD68C)
+    val accentInk   = Color(0xFF062814)
 
-    val danger      = Color(0xFFFF453A)
+    val danger      = Color(0xFFFF5D6E)
     val warn        = Color(0xFFFFCB6B)
 
-    // Glass surface — used for FAB + agent inline cue
-    val glassBg     = Color(0xB81C1C1E)
+    // Glass surface — bgElevated translucent
+    val glassBg     = Color(0xB8141417)
     val glassBorder = Color(0x14FFFFFF)
 }
 

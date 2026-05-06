@@ -48,6 +48,13 @@ kotlin {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
+        force("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.6.2")
+    }
+}
+
 android {
     namespace = "com.notify.anything.notify"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
