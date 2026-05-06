@@ -258,7 +258,7 @@ curl -i https://raspberrypi.taile76757.ts.net/healthz
 
 curl -s -X POST https://raspberrypi.taile76757.ts.net/v1/onboarding/suggest \
     -H 'content-type: application/json' \
-    -d '{"city":"Lisbon","country":"PT","role":"engineer","interests":["tech"]}' | head -c 500
+    -d '{"city":"Lisbon","country":"PT","role":"developer","interests":["tech_meetups","ai_ml"]}' | head -c 500
 # expect JSON like: {"suggestions":[{"query":"...","type":"...","cadenceSeconds":...,"reason":"..."}, ...],"fallback":false}
 ```
 
@@ -301,6 +301,15 @@ POST /v1/subscriptions/{id}/run  (X-Device-Id req)  — force agent run
 
 Background scheduler ticks every 10s, runs due subscriptions through the
 agent (Brave search → OpenAI extract → push notify if APNs configured).
+
+### Onboarding payload schema
+
+Server validates these enums (see `server/internal/api/onboarding.go`):
+
+- `role`: `developer | founder | designer | investor | student | other`
+  (if `other`, also send `role_other` 1-60 chars)
+- `interests`: any of `concerts tech_meetups crypto_web3 fintech startups_vc
+  ai_ml sports art_design food_restaurants politics_policy gaming film_tv`
 
 ## Troubleshooting
 
