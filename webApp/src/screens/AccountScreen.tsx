@@ -142,15 +142,15 @@ function Row({
     }}>
       <div style={{
         width: 28, height: 28, borderRadius: 7,
-        background: danger ? 'rgba(255,69,58,0.14)' : theme.chipBg,
+        background: danger ? 'rgba(255,93,110,0.14)' : theme.chipBg,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
       }}>
-        <Icon name={icon} size={15} color={danger ? '#FF453A' : theme.label2}/>
+        <Icon name={icon} size={15} color={danger ? '#FF5D6E' : theme.label2}/>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: 15, color: danger ? '#FF453A' : theme.label, fontWeight: 500,
+          fontSize: 15, color: danger ? '#FF5D6E' : theme.label, fontWeight: 500,
           letterSpacing: -0.1,
         }}>{label}</div>
       </div>

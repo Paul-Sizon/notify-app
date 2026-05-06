@@ -24,5 +24,5 @@
   to   { opacity: 1; }
 }
 
-input::placeholder { color: rgba(235,235,245,0.3); }
+input::placeholder { color: rgba(255,255,255,0.38); }
 button { font-family: inherit; }

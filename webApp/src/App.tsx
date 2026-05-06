@@ -14,7 +14,7 @@ import { useApp } from './state';
 import { api } from './api';
 
 export function App() {
-  const theme = buildTheme('dark', 'amber');
+  const theme = buildTheme('dark', 'green');
   const app = useApp();
   const [tab, setTab] = useState<TabId>('watchers');
   const [route, setRoute] = useState<{ name: 'home' } | { name: 'detail'; subId: string }>({ name: 'home' });

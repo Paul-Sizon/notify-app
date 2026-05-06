@@ -353,7 +353,8 @@
       "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'id=00008101-001A0C423620001E' -allowProvisioningUpdates build)",
       "Bash(plutil -p /Users/paulsizon/Library/Developer/Xcode/DerivedData/iosApp-eyzkbnwpbtzdhnbqueuzwrxsihpe/Build/Products/Debug-iphoneos/notify.app/Info.plist)",
       "Bash(xcrun --sdk iphoneos assetutil --info /Users/paulsizon/Library/Developer/Xcode/DerivedData/iosApp-eyzkbnwpbtzdhnbqueuzwrxsihpe/Build/Products/Debug-iphoneos/notify.app/Assets.car)",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); icons=[e for e in d if 'AppIcon' in str\\(e.get\\('Name',''\\)\\)]; print\\(json.dumps\\(icons, indent=2\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); icons=[e for e in d if 'AppIcon' in str\\(e.get\\('Name',''\\)\\)]; print\\(json.dumps\\(icons, indent=2\\)\\)\")",
+      "Bash(npm start *)"
     ]
   },
   "enableAllProjectMcpServers": true,

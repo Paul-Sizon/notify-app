@@ -6,18 +6,18 @@ export type AccentName = 'amber' | 'green' | 'violet' | 'coral' | 'mono';
 
 export const TOKENS = {
   dark: {
-    bg:          '#000000',
-    bgElev1:     '#0E0E10',
-    bgElev2:     '#1C1C1E',
-    bgElev3:     '#2C2C2E',
-    separator:   'rgba(84, 84, 88, 0.45)',
+    bg:          '#0A0A0C',
+    bgElev1:     '#141417',
+    bgElev2:     '#18181C',
+    bgElev3:     '#1F1F24',
+    separator:   'rgba(255,255,255,0.12)',
     hairline:    'rgba(255,255,255,0.06)',
     label:       '#FFFFFF',
-    label2:      'rgba(235,235,245,0.78)',
-    label3:      'rgba(235,235,245,0.50)',
-    label4:      'rgba(235,235,245,0.30)',
-    chipBg:      'rgba(118,118,128,0.24)',
-    glassBg:     'rgba(28,28,30,0.72)',
+    label2:      'rgba(255,255,255,0.62)',
+    label3:      'rgba(255,255,255,0.38)',
+    label4:      'rgba(255,255,255,0.22)',
+    chipBg:      'rgba(255,255,255,0.08)',
+    glassBg:     'rgba(20,20,23,0.72)',
     glassBorder: 'rgba(255,255,255,0.08)',
   },
   light: {
@@ -37,7 +37,7 @@ export const TOKENS = {
   },
   accents: {
     amber:  { hex: '#FF9F1C', soft: 'rgba(255,159,28,0.16)', glow: 'rgba(255,159,28,0.45)' },
-    green:  { hex: '#7CFFB2', soft: 'rgba(124,255,178,0.14)', glow: 'rgba(124,255,178,0.45)' },
+    green:  { hex: '#3DD68C', soft: 'rgba(61,214,140,0.16)', glow: 'rgba(61,214,140,0.45)' },
     violet: { hex: '#A78BFA', soft: 'rgba(167,139,250,0.16)', glow: 'rgba(167,139,250,0.45)' },
     coral:  { hex: '#FF7A6B', soft: 'rgba(255,122,107,0.16)', glow: 'rgba(255,122,107,0.45)' },
     mono:   { hex: '#F2F2F7', soft: 'rgba(242,242,247,0.14)', glow: 'rgba(242,242,247,0.4)' },
