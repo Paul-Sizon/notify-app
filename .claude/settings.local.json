@@ -349,7 +349,11 @@
       "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS,id=C070F899-685E-55D0-86E7-AB103493ED1B' -derivedDataPath build/dd-device -allowProvisioningUpdates build)",
       "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS Simulator' -configuration Debug build)",
       "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'platform=iOS Simulator,name=iPhone 16' -configuration Debug build ARCHS=arm64 ONLY_ACTIVE_ARCH=YES)",
-      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'id=5FC1A093-A9DC-4C6E-B868-5DE5A833E881' -configuration Debug build ONLY_ACTIVE_ARCH=YES)"
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'id=5FC1A093-A9DC-4C6E-B868-5DE5A833E881' -configuration Debug build ONLY_ACTIVE_ARCH=YES)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'id=00008101-001A0C423620001E' -allowProvisioningUpdates build)",
+      "Bash(plutil -p /Users/paulsizon/Library/Developer/Xcode/DerivedData/iosApp-eyzkbnwpbtzdhnbqueuzwrxsihpe/Build/Products/Debug-iphoneos/notify.app/Info.plist)",
+      "Bash(xcrun --sdk iphoneos assetutil --info /Users/paulsizon/Library/Developer/Xcode/DerivedData/iosApp-eyzkbnwpbtzdhnbqueuzwrxsihpe/Build/Products/Debug-iphoneos/notify.app/Assets.car)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); icons=[e for e in d if 'AppIcon' in str\\(e.get\\('Name',''\\)\\)]; print\\(json.dumps\\(icons, indent=2\\)\\)\")"
     ]
   },
   "enableAllProjectMcpServers": true,

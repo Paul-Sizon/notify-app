@@ -120,7 +120,8 @@ struct WatchersView: View {
                         signals: state.signals(for: sub.id),
                         confirmedDate: state.confirmedDate(for: sub),
                         onTap: { openSubscription(sub) },
-                        onRun: { Task { await state.run(sub) } }
+                        onRun: { Task { await state.run(sub) } },
+                        onDelete: { Task { await state.delete(sub) } }
                     )
                 }
             }

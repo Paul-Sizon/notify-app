@@ -20,7 +20,16 @@ struct AISuggestionsView: View {
     @State private var error: String?
     @State private var activatedSubIds: [UUID: String] = [:]
     @State private var inFlight: Set<UUID> = []
+    @State private var loadingStep: Int = 0
+    @State private var ringScale: CGFloat = 0.8
     @FocusState private var focused: Bool
+
+    private let loadingPhases: [(String, String)] = [
+        ("Reading your context", "doc.text.magnifyingglass"),
+        ("Searching the web", "globe"),
+        ("Curating signals", "sparkles"),
+        ("Almost ready", "checkmark.circle"),
+    ]
 
     private let charLimit = 2000
     private let minChars = 10
@@ -218,13 +227,89 @@ struct AISuggestionsView: View {
 
     // ─── loading phase ───
     private var loadingContent: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 32) {
             Spacer()
-            PulsingSparkle()
-            Text("Scanning the web for signals…")
-                .font(Theme.body())
-                .foregroundStyle(Theme.label2)
+            pulseRing
+            VStack(spacing: 8) {
+                Text("AI SUGGESTIONS")
+                    .font(Theme.eyebrow())
+                    .foregroundStyle(Theme.accent)
+                    .tracking(2)
+                Text("Scanning the web for signals")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(Theme.label1)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 320)
+            }
+            loadingPhaseList
             Spacer()
+            Waveform(active: true).frame(height: 36)
+                .padding(.horizontal, 60)
+            Spacer().frame(height: 40)
+        }
+        .padding(.horizontal, 22)
+        .onAppear {
+            loadingStep = 0
+            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                ringScale = 1.15
+            }
+            startLoadingPhases()
+        }
+    }
+
+    private var pulseRing: some View {
+        ZStack {
+            ForEach(0..<3, id: \.self) { i in
+                Circle().stroke(Theme.accent.opacity(0.5 - Double(i) * 0.15), lineWidth: 1.5)
+                    .frame(width: 110, height: 110)
+                    .scaleEffect(ringScale + CGFloat(i) * 0.18)
+                    .opacity(2.0 - ringScale - CGFloat(i) * 0.4)
+            }
+            Circle().fill(Theme.accentSoft).frame(width: 90, height: 90)
+            Image(systemName: loadingPhases[loadingStep].1)
+                .font(.system(size: 32, weight: .light))
+                .foregroundStyle(Theme.accent)
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .frame(width: 180, height: 180)
+    }
+
+    private var loadingPhaseList: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(0..<loadingPhases.count, id: \.self) { i in
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .stroke(i < loadingStep ? Theme.accent : Theme.label4, lineWidth: 1.5)
+                            .frame(width: 16, height: 16)
+                        if i < loadingStep {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(Theme.accent)
+                        } else if i == loadingStep {
+                            Circle().fill(Theme.accent).frame(width: 6, height: 6)
+                        }
+                    }
+                    Text(loadingPhases[i].0)
+                        .font(Theme.body())
+                        .foregroundStyle(i <= loadingStep ? Theme.label1 : Theme.label3)
+                }
+                .opacity(i <= loadingStep ? 1 : 0.5)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 40)
+    }
+
+    private func startLoadingPhases() {
+        for i in 1..<loadingPhases.count {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 1.1) {
+                guard phase == .loading else { return }
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    loadingStep = i
+                    Haptics.soft()
+                }
+            }
         }
     }
 
