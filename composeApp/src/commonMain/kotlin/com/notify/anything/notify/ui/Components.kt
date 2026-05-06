@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -248,16 +249,43 @@ fun AlertRow(signal: Signal, subscription: Subscription, onTap: () -> Unit) {
 /* ──────── Empty state ──────── */
 @Composable
 fun EmptyState(title: String, subtitle: String, cta: String? = null, onCta: (() -> Unit)? = null) {
+    // Slow vertical bob on the icon — never settles, gives the empty
+    // screen a heartbeat so it feels alive rather than abandoned.
+    val transition = rememberInfiniteTransition(label = "empty")
+    val bob by transition.animateFloat(
+        initialValue = -4f, targetValue = 4f,
+        animationSpec = infiniteRepeatable(
+            tween(2200, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "bob",
+    )
+    val pulseAlpha by transition.animateFloat(
+        initialValue = 0.55f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            tween(2200, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "alpha",
+    )
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(18.dp),
         modifier = Modifier.fillMaxWidth().padding(40.dp),
     ) {
         Box(
-            modifier = Modifier.size(92.dp).clip(CircleShape).background(NotifyColors.accentSoft),
+            modifier = Modifier
+                .size(92.dp)
+                .offset { androidx.compose.ui.unit.IntOffset(0, bob.toInt()) }
+                .clip(CircleShape)
+                .background(NotifyColors.accentSoft),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(NotifyIcons.GraphicEq, null, tint = NotifyColors.accent, modifier = Modifier.size(38.dp))
+            Icon(
+                NotifyIcons.GraphicEq, null,
+                tint = NotifyColors.accent.copy(alpha = pulseAlpha),
+                modifier = Modifier.size(38.dp),
+            )
         }
         Text(title, style = NotifyType.title2, color = NotifyColors.label1)
         Text(
@@ -271,7 +299,7 @@ fun EmptyState(title: String, subtitle: String, cta: String? = null, onCta: (() 
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
                     .background(NotifyColors.accent)
-                    .clickable { onCta() }
+                    .softClick(pressScale = 0.95f, haptic = { tapMedium() }) { onCta() }
                     .padding(horizontal = 24.dp, vertical = 13.dp),
             ) {
                 Text(cta, color = NotifyColors.accentInk, style = NotifyType.bodyMed)
@@ -332,22 +360,36 @@ fun Toast(message: String?, onClear: () -> Unit, isError: Boolean = false) {
 }
 
 /* ──────── FAB ──────── */
+/**
+ * Floating action button with two animation hooks:
+ *  - `bumpKey` change triggers a one-shot scale-pulse to celebrate side
+ *    effects (e.g. a watcher just landed in the list).
+ *  - press scale + ripple via `softClick`.
+ */
 @Composable
-fun NotifyFab(onClick: () -> Unit) {
-    var pressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (pressed) 0.94f else 1f, tween(180), label = "fab")
+fun NotifyFab(bumpKey: Any = Unit, onClick: () -> Unit) {
+    var bumpScale by remember { mutableStateOf(1f) }
+    val animatedBump by animateFloatAsState(
+        targetValue = bumpScale,
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = 0.45f,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessMedium,
+        ),
+        label = "fab-bump",
+    )
+    LaunchedEffect(bumpKey) {
+        bumpScale = 1.18f
+        kotlinx.coroutines.delay(180)
+        bumpScale = 1f
+    }
     Box(
         modifier = Modifier
             .size(56.dp)
-            .scale(scale)
+            .scale(animatedBump)
             .shadow(16.dp, CircleShape, ambientColor = NotifyColors.accentGlow, spotColor = NotifyColors.accentGlow)
             .clip(CircleShape)
             .background(NotifyColors.accent)
-            .clickable {
-                pressed = true
-                onClick()
-                pressed = false
-            },
+            .softClick(pressScale = 0.9f, haptic = { tapMedium() }) { onClick() },
         contentAlignment = Alignment.Center,
     ) {
         Icon(NotifyIcons.Add, "+", tint = NotifyColors.accentInk, modifier = Modifier.size(22.dp))

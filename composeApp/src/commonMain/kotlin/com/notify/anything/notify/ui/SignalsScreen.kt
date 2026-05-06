@@ -1,5 +1,7 @@
 package com.notify.anything.notify.ui
 
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,8 +69,10 @@ fun SignalsScreen(state: AppState) {
             }
             for ((sig, sub) in all.take(40)) {
                 item(key = sig.id) {
-                    Box(modifier = Modifier.padding(horizontal = 22.dp, vertical = 5.dp)) {
-                        AlertRow(sig, sub) { state.detailSubscriptionId = sub.id }
+                    AnimatedListEntry {
+                        Box(modifier = Modifier.padding(horizontal = 22.dp, vertical = 5.dp)) {
+                            AlertRow(sig, sub) { state.detailSubscriptionId = sub.id }
+                        }
                     }
                 }
             }
@@ -77,6 +82,9 @@ fun SignalsScreen(state: AppState) {
 
 @Composable
 private fun StatsCard(state: AppState, modifier: Modifier = Modifier) {
+    val watching by animateIntAsState(state.activeSubscriptions.size, tween(450), label = "w")
+    val resolved by animateIntAsState(state.resolvedSubscriptions.size, tween(450), label = "r")
+    val signals by animateIntAsState(state.allSignalsRecent.size, tween(450), label = "s")
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -86,11 +94,11 @@ private fun StatsCard(state: AppState, modifier: Modifier = Modifier) {
             .padding(vertical = 18.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        StatCell("WATCHING", "${state.activeSubscriptions.size}", Modifier.weight(1f))
+        StatCell("WATCHING", "$watching", Modifier.weight(1f))
         Divider38()
-        StatCell("RESOLVED", "${state.resolvedSubscriptions.size}", Modifier.weight(1f))
+        StatCell("RESOLVED", "$resolved", Modifier.weight(1f))
         Divider38()
-        StatCell("SIGNALS", "${state.allSignalsRecent.size}", Modifier.weight(1f))
+        StatCell("SIGNALS", "$signals", Modifier.weight(1f))
     }
 }
 

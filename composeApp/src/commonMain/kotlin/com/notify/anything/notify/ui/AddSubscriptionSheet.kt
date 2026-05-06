@@ -210,12 +210,22 @@ private fun TypeChip(
     onSelect: (SubscriptionType) -> Unit,
 ) {
     val active = current == target
+    val bg by androidx.compose.animation.animateColorAsState(
+        if (active) NotifyColors.accent else NotifyColors.surface,
+        animationSpec = androidx.compose.animation.core.tween(220),
+        label = "chip-bg",
+    )
+    val fg by androidx.compose.animation.animateColorAsState(
+        if (active) NotifyColors.accentInk else NotifyColors.label1,
+        animationSpec = androidx.compose.animation.core.tween(220),
+        label = "chip-fg",
+    )
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(999.dp))
-            .background(if (active) NotifyColors.accent else NotifyColors.surface)
+            .background(bg)
             .border(0.5.dp, NotifyColors.stroke, RoundedCornerShape(999.dp))
-            .clickable { onSelect(target) }
+            .softClick(pressScale = 0.95f, haptic = { selection() }) { onSelect(target) }
             .padding(horizontal = 16.dp, vertical = 11.dp),
     ) {
         Row(
@@ -224,26 +234,33 @@ private fun TypeChip(
         ) {
             Icon(
                 if (isEvent) NotifyIcons.CalendarMonth else NotifyIcons.Newspaper, null,
-                tint = if (active) NotifyColors.accentInk else NotifyColors.label1,
+                tint = fg,
                 modifier = Modifier.size(15.dp),
             )
-            Text(
-                label,
-                style = NotifyType.bodyMed,
-                color = if (active) NotifyColors.accentInk else NotifyColors.label1,
-            )
+            Text(label, style = NotifyType.bodyMed, color = fg)
         }
     }
 }
 
 @Composable
 private fun CadenceSlider(count: Int, index: Int, onChange: (Int) -> Unit) {
+    // Animate the rendered position of both the filled track and the knob,
+    // so dragging snaps the underlying integer index but the visual glides
+    // between stops with a spring.
+    val animatedIndex by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = index.toFloat(),
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = 0.78f,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessMedium,
+        ),
+        label = "cadence-knob",
+    )
     BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(22.dp)) {
         val w = maxWidth
         val density = LocalDensity.current
         val widthPx = with(density) { w.toPx() }
         val stepPx = widthPx / (count - 1).coerceAtLeast(1)
-        val knobPx = stepPx * index
+        val knobPx = stepPx * animatedIndex
 
         Box(
             modifier = Modifier

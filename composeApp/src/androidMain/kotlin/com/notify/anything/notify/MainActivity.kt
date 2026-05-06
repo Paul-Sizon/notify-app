@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import com.notify.anything.notify.platform.AndroidHaptics
 import com.notify.anything.notify.platform.AndroidNotifier
 import com.notify.anything.notify.platform.AndroidPrefs
 import com.notify.anything.notify.platform.AndroidUrlOpener
@@ -29,12 +30,14 @@ class MainActivity : ComponentActivity() {
         val notifier = AndroidNotifier(applicationContext, MainActivity::class.java)
         val prefs = AndroidPrefs(applicationContext)
         val opener = AndroidUrlOpener(applicationContext)
+        val haptics = AndroidHaptics(applicationContext)
 
         setContent {
             App(
                 notifier = notifier,
                 prefs = prefs,
                 urlOpener = opener,
+                haptics = haptics,
                 initialBaseUrl = ANDROID_DEFAULT_BASE_URL,
             )
         }

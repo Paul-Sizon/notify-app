@@ -3,6 +3,7 @@ package com.notify.anything.notify
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.notify.anything.notify.platform.InMemoryPrefs
+import com.notify.anything.notify.platform.NoopHaptics
 import com.notify.anything.notify.platform.NoopNotifier
 import com.notify.anything.notify.platform.NoopUrlOpener
 
@@ -12,6 +13,7 @@ fun main() = application {
             notifier = NoopNotifier,
             prefs = InMemoryPrefs(),
             urlOpener = NoopUrlOpener,
+            haptics = NoopHaptics,
             initialBaseUrl = "http://localhost:8080",
         )
     }
