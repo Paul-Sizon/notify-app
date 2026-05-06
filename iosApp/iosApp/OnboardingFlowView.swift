@@ -154,8 +154,11 @@ private struct CityScreen: View {
     let onSkip: () -> Void
 
     @State private var completer = CityCompleter()
+    @State private var locator = CurrentLocationFinder()
     @State private var typed: String = ""
     @State private var freeAcceptAt: Date? = nil
+    @State private var locating: Bool = false
+    @State private var locateError: String? = nil
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -189,13 +192,13 @@ private struct CityScreen: View {
                 Image(systemName: "location.fill").foregroundStyle(Theme.accent)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(city).font(Theme.title3()).foregroundStyle(Theme.label1)
-                    if let c = model.country, !c.isEmpty {
-                        Text(c).font(Theme.caption()).foregroundStyle(Theme.label2)
+                    if let sub = selectedSubtitle, !sub.isEmpty {
+                        Text(sub).font(Theme.caption()).foregroundStyle(Theme.label2)
                     }
                 }
                 Spacer()
                 Button {
-                    model.city = nil; model.country = nil
+                    model.city = nil; model.region = nil; model.country = nil
                     typed = ""; focused = true
                 } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -212,6 +215,8 @@ private struct CityScreen: View {
                     .foregroundStyle(Theme.label1)
                     .tint(Theme.accent)
                     .focused($focused)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.words)
                     .padding(14)
                     .background(RoundedRectangle(cornerRadius: Theme.rMed).fill(Theme.surface))
                     .overlay(RoundedRectangle(cornerRadius: Theme.rMed)
@@ -221,30 +226,84 @@ private struct CityScreen: View {
                         freeAcceptAt = Date().addingTimeInterval(1.5)
                     }
 
+                // Use-my-location row — visible only when nothing typed yet.
+                if typed.isEmpty {
+                    Button(action: useCurrentLocation) {
+                        HStack(spacing: 10) {
+                            if locating {
+                                ProgressView().tint(Theme.accent)
+                            } else {
+                                Image(systemName: "location.circle.fill")
+                                    .foregroundStyle(Theme.accent)
+                            }
+                            Text(locating ? "Finding you…" : "Use my current location")
+                                .font(Theme.body())
+                                .foregroundStyle(Theme.label1)
+                            Spacer()
+                        }
+                        .padding(.vertical, 10)
+                    }
+                    .disabled(locating)
+                    if let err = locateError {
+                        Text(err).font(Theme.caption()).foregroundStyle(Theme.label3)
+                    }
+                    Divider().background(Theme.stroke)
+                }
+
                 ForEach(completer.results.prefix(6)) { row in
                     Button {
                         Haptics.selection()
-                        model.city = row.title
-                        model.country = row.country
-                        typed = ""
-                        focused = false
+                        apply(row)
                     } label: {
-                        HStack {
+                        HStack(spacing: 10) {
+                            if !row.flag.isEmpty {
+                                Text(row.flag).font(.system(size: 22))
+                            }
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(row.title).font(Theme.body()).foregroundStyle(Theme.label1)
+                                Text(row.city).font(Theme.body()).foregroundStyle(Theme.label1)
                                 if !row.subtitle.isEmpty {
                                     Text(row.subtitle).font(Theme.caption()).foregroundStyle(Theme.label2)
                                 }
                             }
                             Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(Theme.label3)
                         }
                         .padding(.vertical, 10)
                     }
                     Divider().background(Theme.stroke)
                 }
+            }
+        }
+    }
+
+    private var selectedSubtitle: String? {
+        let r = model.region ?? ""
+        let c = model.country ?? ""
+        if r.isEmpty { return c.isEmpty ? nil : c }
+        if c.isEmpty { return r }
+        return "\(r), \(c)"
+    }
+
+    private func apply(_ s: CitySuggestion) {
+        model.city = s.city
+        model.region = s.region
+        model.country = s.country
+        typed = ""
+        focused = false
+    }
+
+    private func useCurrentLocation() {
+        locateError = nil
+        locating = true
+        Task {
+            defer { locating = false }
+            do {
+                let s = try await locator.fetch()
+                Haptics.selection()
+                apply(s)
+            } catch CurrentLocationFinder.FinderError.denied {
+                locateError = "Location permission denied. Type your city instead."
+            } catch {
+                locateError = "Couldn't find your location."
             }
         }
     }
@@ -262,6 +321,7 @@ private struct CityScreen: View {
             if model.city == nil {
                 let trimmed = typed.trimmingCharacters(in: .whitespacesAndNewlines)
                 model.city = trimmed
+                model.region = ""
                 model.country = ""
             }
             onContinue()

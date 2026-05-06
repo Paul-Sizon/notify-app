@@ -346,7 +346,10 @@
       "Bash(./node_modules/.bin/tsc --version)",
       "Bash(xcodebuild -project iosApp.xcodeproj -list)",
       "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS Simulator,id=5FC1A093-A9DC-4C6E-B868-5DE5A833E881' -derivedDataPath build/dd CODE_SIGNING_ALLOWED=NO build)",
-      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS,id=C070F899-685E-55D0-86E7-AB103493ED1B' -derivedDataPath build/dd-device -allowProvisioningUpdates build)"
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS,id=C070F899-685E-55D0-86E7-AB103493ED1B' -derivedDataPath build/dd-device -allowProvisioningUpdates build)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS Simulator' -configuration Debug build)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'platform=iOS Simulator,name=iPhone 16' -configuration Debug build ARCHS=arm64 ONLY_ACTIVE_ARCH=YES)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -destination 'id=5FC1A093-A9DC-4C6E-B868-5DE5A833E881' -configuration Debug build ONLY_ACTIVE_ARCH=YES)"
     ]
   },
   "enableAllProjectMcpServers": true,

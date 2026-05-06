@@ -14,6 +14,7 @@ final class OnboardingViewModel {
     // ─── inputs ───
     var step: Step = .city
     var city: String?
+    var region: String?
     var country: String?
     var role: OnboardingRole?
     var roleOther: String = ""

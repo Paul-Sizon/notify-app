@@ -4,6 +4,8 @@
     <dict>
         <key>CADisableMinimumFrameDurationOnPhone</key>
         <true/>
+        <key>NSLocationWhenInUseUsageDescription</key>
+        <string>Used once to detect your city for local event suggestions.</string>
         <key>NSAppTransportSecurity</key>
         <dict>
             <key>NSAllowsLocalNetworking</key>
