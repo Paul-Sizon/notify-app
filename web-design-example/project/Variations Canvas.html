@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Signal Monitor — Variations Canvas</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="seed.jsx"></script>
+<script type="text/babel" src="screen-home.jsx"></script>
+<script type="text/babel" src="screen-add.jsx"></script>
+<script type="text/babel" src="screen-detail.jsx"></script>
+<script type="text/babel" src="screen-agent.jsx"></script>
+<script type="text/babel" src="screen-lock.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+
+<style>
+  @keyframes pulse-ring { 0%{transform:scale(0.8);opacity:.9} 100%{transform:scale(1.6);opacity:0} }
+  @keyframes pulse-dot  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+  @keyframes wave-bar   { 0%,100%{transform:scaleY(.5)} 50%{transform:scaleY(1)} }
+  @keyframes log-in     { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes cursor-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+</style>
+
+<script type="text/babel" data-presets="env,react">
+function Phone({ tweaks, scale = 0.55 }) {
+  const realW = 402, realH = 874;
+  return (
+    <div style={{
+      width: realW * scale, height: realH * scale,
+      position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+    }}>
+      <div style={{
+        transform: `scale(${scale})`, transformOrigin: 'top left',
+        width: realW, height: realH, position: 'absolute', top: 0, left: 0,
+      }}>
+        <IOSDevice width={realW} height={realH} dark={tweaks.mode === 'dark'}>
+          <SignalMonitorApp tweaks={tweaks} setTweak={() => {}}/>
+        </IOSDevice>
+      </div>
+    </div>
+  );
+}
+
+const baseDark   = { mode: 'dark',  density: 'cozy', showFrame: true, agentVariant: 'phases' };
+const baseLight  = { mode: 'light', density: 'cozy', showFrame: true, agentVariant: 'phases' };
+
+function App() {
+  const variations = [
+    // Theme + accent
+    { id: 'dark-amber',  label: 'Dark · Amber',     tweaks: { ...baseDark,  accent: 'amber',  startOn: 'home' } },
+    { id: 'dark-green',  label: 'Dark · Signal',    tweaks: { ...baseDark,  accent: 'green',  startOn: 'home' } },
+    { id: 'dark-violet', label: 'Dark · Violet',    tweaks: { ...baseDark,  accent: 'violet', startOn: 'home' } },
+    { id: 'dark-mono',   label: 'Dark · Monochrome',tweaks: { ...baseDark,  accent: 'mono',   startOn: 'home' } },
+    { id: 'light-amber', label: 'Light · Amber',    tweaks: { ...baseLight, accent: 'amber',  startOn: 'home' } },
+  ];
+
+  const screens = [
+    { id: 'home',   label: 'Home — Watching',    tweaks: { ...baseDark, accent: 'amber', startOn: 'home' } },
+    { id: 'detail', label: 'Detail — History',   tweaks: { ...baseDark, accent: 'amber', startOn: 'detail' } },
+    { id: 'add',    label: 'Add — Sheet',        tweaks: { ...baseDark, accent: 'amber', startOn: 'add' } },
+    { id: 'lock',   label: 'Lock — Push',        tweaks: { ...baseDark, accent: 'amber', startOn: 'lock' } },
+    { id: 'empty',  label: 'Empty State',        tweaks: { ...baseDark, accent: 'amber', startOn: 'empty' } },
+  ];
+
+  const liveAgents = [
+    { id: 'lv-phases',   label: 'Phases',   tweaks: { ...baseDark, accent: 'amber', startOn: 'agent', agentVariant: 'phases' } },
+    { id: 'lv-wave',     label: 'Wave',     tweaks: { ...baseDark, accent: 'amber', startOn: 'agent', agentVariant: 'wave' } },
+    { id: 'lv-terminal', label: 'Terminal', tweaks: { ...baseDark, accent: 'amber', startOn: 'agent', agentVariant: 'terminal' } },
+  ];
+
+  const W = 442, H = 920;
+
+  return (
+    <DesignCanvas
+      title="Signal Monitor — design exploration"
+      subtitle="A calm watcher app for niche signals · iOS prototype variations"
+    >
+      <DCSection id="screens" title="Core screens" subtitle="The whole app, one accent direction (Dark · Amber)">
+        {screens.map(s => (
+          <DCArtboard key={s.id} id={s.id} label={s.label} width={W} height={H}>
+            <Phone tweaks={s.tweaks} scale={1}/>
+          </DCArtboard>
+        ))}
+      </DCSection>
+
+      <DCSection id="agent" title="Live agent · three treatments" subtitle="The 'moat' moment — three takes on the agent visualization">
+        {liveAgents.map(s => (
+          <DCArtboard key={s.id} id={s.id} label={s.label} width={W} height={H}>
+            <Phone tweaks={s.tweaks} scale={1}/>
+          </DCArtboard>
+        ))}
+      </DCSection>
+
+      <DCSection id="theme" title="Theme & accent variations" subtitle="Same home screen, different palettes — pick one">
+        {variations.map(s => (
+          <DCArtboard key={s.id} id={s.id} label={s.label} width={W} height={H}>
+            <Phone tweaks={s.tweaks} scale={1}/>
+          </DCArtboard>
+        ))}
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Signal Monitor — iOS prototype</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; min-height: 100%;
+    background: #0a0a0c;
+    font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  * { box-sizing: border-box; }
+  #root {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 20px;
+    gap: 24px;
+  }
+
+  /* Animations */
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.8); opacity: 0.9; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+  }
+  @keyframes wave-bar {
+    0%, 100% { transform: scaleY(0.5); }
+    50%      { transform: scaleY(1); }
+  }
+  @keyframes log-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cursor-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  @keyframes slow-fade {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+
+  .stage-label {
+    font-size: 12px; color: rgba(255,255,255,0.4);
+    letter-spacing: 1.4px; text-transform: uppercase; font-weight: 600;
+    margin-bottom: -8px;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="seed.jsx"></script>
+<script type="text/babel" src="screen-home.jsx"></script>
+<script type="text/babel" src="screen-add.jsx"></script>
+<script type="text/babel" src="screen-detail.jsx"></script>
+<script type="text/babel" src="screen-agent.jsx"></script>
+<script type="text/babel" src="screen-lock.jsx"></script>
+<script type="text/babel" src="tab-bar.jsx"></script>
+<script type="text/babel" src="screen-tabs.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "mode": "dark",
+  "accent": "green",
+  "agentVariant": "phases",
+  "density": "spacious",
+  "startOn": "home",
+  "showFrame": true
+}/*EDITMODE-END*/;
+
+function Root() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const theme = useSMTheme(tweaks.mode, tweaks.accent);
+
+  return (
+    <>
+      <div data-screen-label="01 iPhone — Signal Monitor" style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18,
+      }}>
+        <div className="stage-label">
+          {tweaks.startOn === 'lock' ? 'Lock screen — push notifications'
+            : tweaks.startOn === 'agent' ? 'Live agent — ' + tweaks.agentVariant
+            : tweaks.startOn === 'add' ? 'Add subscription sheet'
+            : tweaks.startOn === 'detail' ? 'Signal detail — history'
+            : tweaks.startOn === 'empty' ? 'Empty state'
+            : 'Home — watching'}
+        </div>
+        {tweaks.showFrame ? (
+          <IOSDevice width={402} height={874} dark={tweaks.mode === 'dark'}>
+            <SignalMonitorApp tweaks={tweaks} setTweak={setTweak}/>
+          </IOSDevice>
+        ) : (
+          <div style={{
+            width: 402, height: 874, borderRadius: 48, overflow: 'hidden',
+            background: theme.bg, position: 'relative',
+            boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
+          }}>
+            <SignalMonitorApp tweaks={tweaks} setTweak={setTweak}/>
+          </div>
+        )}
+      </div>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection title="Look">
+          <TweakRadio label="Theme" value={tweaks.mode}
+            onChange={(v) => setTweak('mode', v)}
+            options={[{value: 'dark', label: 'Dark'}, {value: 'light', label: 'Light'}]}/>
+          <TweakSelect label="Accent" value={tweaks.accent}
+            onChange={(v) => setTweak('accent', v)}
+            options={[
+              {value: 'amber',  label: 'Deep amber'},
+              {value: 'green',  label: 'Signal green'},
+              {value: 'violet', label: 'Cool violet'},
+              {value: 'coral',  label: 'Warm coral'},
+              {value: 'mono',   label: 'Monochrome'},
+            ]}/>
+          <TweakRadio label="Density" value={tweaks.density}
+            onChange={(v) => setTweak('density', v)}
+            options={[
+              {value: 'compact',  label: 'Compact'},
+              {value: 'cozy',     label: 'Cozy'},
+              {value: 'spacious', label: 'Spacious'},
+            ]}/>
+        </TweakSection>
+        <TweakSection title="Live Agent">
+          <TweakRadio label="Treatment" value={tweaks.agentVariant}
+            onChange={(v) => setTweak('agentVariant', v)}
+            options={[
+              {value: 'phases',   label: 'Phases'},
+              {value: 'wave',     label: 'Wave'},
+              {value: 'terminal', label: 'Terminal'},
+            ]}/>
+        </TweakSection>
+        <TweakSection title="Show screen">
+          <TweakSelect label="Start on" value={tweaks.startOn}
+            onChange={(v) => setTweak('startOn', v)}
+            options={[
+              {value: 'home',   label: 'Home (watching)'},
+              {value: 'detail', label: 'Signal detail'},
+              {value: 'add',    label: 'Add subscription'},
+              {value: 'agent',  label: 'Live agent'},
+              {value: 'lock',   label: 'Lock screen'},
+              {value: 'empty',  label: 'Empty state'},
+            ]}/>
+          <TweakToggle label="iPhone frame" value={tweaks.showFrame}
+            onChange={(v) => setTweak('showFrame', v)}/>
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
+</script>
+</body>
+</html>
