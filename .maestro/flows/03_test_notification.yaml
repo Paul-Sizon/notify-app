@@ -1,7 +1,7 @@
 # Verifies the mocked-push debug row delivers a real local notification.
 # Regression test for bug 3 — earlier the deliver call silently no-op'd
 # when permission was denied/notDetermined.
-appId: com.notify.anything.notify.notify
+appId: com.notify.anything.notify
 ---
 - launchApp:
     clearState: true

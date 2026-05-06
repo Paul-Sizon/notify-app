@@ -1,6 +1,6 @@
 # Smoke: launch the app, dismiss perm prompt if it appears, confirm the
 # Watchers shell rendered. Cheap canary for "did the build deploy at all".
-appId: com.notify.anything.notify.notify
+appId: com.notify.anything.notify
 ---
 - launchApp:
     clearState: true

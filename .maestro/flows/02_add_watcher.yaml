@@ -3,7 +3,7 @@
 #   2. Query input + News chip + Start watching submit
 #   3. Toast "Watcher added: …" appears (regression test for bug 2)
 #   4. New card lands in the active list with the typed query
-appId: com.notify.anything.notify.notify
+appId: com.notify.anything.notify
 ---
 - launchApp:
     clearState: true
@@ -26,7 +26,7 @@ appId: com.notify.anything.notify.notify
 - assertVisible: "New watcher"
 
 - tapOn: "Coldplay tour São Paulo 2026"   # placeholder — focuses + clears
-- inputText: "Stablecoin regulation Brazil"
+- inputText: "crypto news brazil"
 
 - tapOn: "News"
 - tapOn: "Start watching"
@@ -34,6 +34,6 @@ appId: com.notify.anything.notify.notify
 # Card landing in the active list = backend round-trip succeeded.
 # We avoid asserting on the toast because it auto-dismisses in 2.4s
 # which is shorter than maestro's per-step latency on cold simulator.
-- assertVisible: "Stablecoin regulation Brazil"
+- assertVisible: "crypto news brazil"
 - assertVisible: "NEWS"
 - takeScreenshot: add-watcher-success

@@ -2,7 +2,7 @@
 # subscription visible. Catches regressions where the parallel TaskGroup
 # refresh trips on an empty signalsBySub map (the bug pattern from when
 # we first introduced the parallel fetch).
-appId: com.notify.anything.notify.notify
+appId: com.notify.anything.notify
 ---
 - launchApp:
     clearState: true
@@ -20,9 +20,9 @@ appId: com.notify.anything.notify.notify
     commands:
       - tapOn: "+"
 - tapOn: "Coldplay tour São Paulo 2026"
-- inputText: "F1 Brazilian Grand Prix 2027"
+- inputText: "brazil grand prix tickets"
 - tapOn: "Start watching"
-- assertVisible: "F1 Brazilian Grand Prix 2027"
+- assertVisible: "brazil grand prix tickets"
 
 # Pull from header down by ~400px — `swipe` with start/end mac-coords-style
 # normalized 0..1 fractions or with iOS coords.
@@ -31,5 +31,5 @@ appId: com.notify.anything.notify.notify
     end:   50%, 75%
     duration: 600
 
-- assertVisible: "F1 Brazilian Grand Prix 2027"
+- assertVisible: "brazil grand prix tickets"
 - takeScreenshot: pull-to-refresh-stable

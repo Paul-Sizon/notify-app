@@ -1,7 +1,7 @@
 # Navigate every tab in order, assert each section header lands.
 # Catches regression where a tab handler stops re-rendering its screen
 # (the bug pattern from the original web prototype's matchedGeometry rewrite).
-appId: com.notify.anything.notify.notify
+appId: com.notify.anything.notify
 ---
 - launchApp:
     clearState: false

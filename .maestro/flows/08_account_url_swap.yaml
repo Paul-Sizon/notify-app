@@ -3,7 +3,7 @@
 #   - "Reset to localhost" path returns to default
 # Doesn't actually swap to a new tunnel (would need a real reachable
 # server to bootstrap against and would mutate device state).
-appId: com.notify.anything.notify.notify
+appId: com.notify.anything.notify
 ---
 - launchApp:
     clearState: true

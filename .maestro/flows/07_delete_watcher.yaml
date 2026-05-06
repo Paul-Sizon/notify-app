@@ -4,7 +4,7 @@
 # SubscriptionCard. SwiftUI sometimes drops .contextMenu on iOS 18 betas
 # when the card view is wrapped too deeply; longPress + assertVisible
 # catches that regression.
-appId: com.notify.anything.notify.notify
+appId: com.notify.anything.notify
 ---
 - launchApp:
     clearState: true
@@ -22,14 +22,14 @@ appId: com.notify.anything.notify.notify
     commands:
       - tapOn: "+"
 - tapOn: "Coldplay tour São Paulo 2026"
-- inputText: "Test contextMenu watcher"
+- inputText: "sample watcher"
 - tapOn: "Start watching"
 
-- longPressOn: "Test contextMenu watcher"
+- longPressOn: "sample watcher"
 - assertVisible: "Run now"
 - takeScreenshot: contextmenu-visible
 
 # Tap somewhere else to dismiss menu.
 - tapOn:
     point: 50%, 95%
-- assertVisible: "Test contextMenu watcher"
+- assertVisible: "sample watcher"
