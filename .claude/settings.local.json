@@ -343,7 +343,10 @@
       "Bash(./gradlew :composeApp:compileKotlinJvm)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
       "Bash(npm install *)",
-      "Bash(./node_modules/.bin/tsc --version)"
+      "Bash(./node_modules/.bin/tsc --version)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -list)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS Simulator,id=5FC1A093-A9DC-4C6E-B868-5DE5A833E881' -derivedDataPath build/dd CODE_SIGNING_ALLOWED=NO build)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS,id=C070F899-685E-55D0-86E7-AB103493ED1B' -derivedDataPath build/dd-device -allowProvisioningUpdates build)"
     ]
   },
   "enableAllProjectMcpServers": true,

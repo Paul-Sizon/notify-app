@@ -112,7 +112,8 @@ final class OnboardingViewModel {
             Haptics.success()
         } catch {
             Haptics.error()
-            self.error = "Couldn't start that one — try again."
+            self.error = "Couldn't start that one — \(error.localizedDescription)"
+            print("onboarding activate failed: \(error)")
         }
     }
 
@@ -128,7 +129,8 @@ final class OnboardingViewModel {
             Haptics.tap()
         } catch {
             Haptics.error()
-            self.error = "Couldn't stop that one — try again."
+            self.error = "Couldn't stop that one — \(error.localizedDescription)"
+            print("onboarding deactivate failed: \(error)")
         }
     }
 
