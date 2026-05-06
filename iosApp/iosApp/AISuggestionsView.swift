@@ -14,7 +14,7 @@ struct AISuggestionsView: View {
     @Environment(AppState.self) private var state
 
     @State private var phase: Phase = .input
-    @State private var contextText: String = ""
+    @State private var contextText: String = Self.prefillContext
     @State private var suggestions: [OnboardingSuggestion] = []
     @State private var fallback: Bool = false
     @State private var error: String?
@@ -22,8 +22,18 @@ struct AISuggestionsView: View {
     @State private var inFlight: Set<UUID> = []
     @FocusState private var focused: Bool
 
-    private let charLimit = 500
+    private let charLimit = 2000
     private let minChars = 10
+
+    private static let prefillContext = """
+    San Francisco, Senior Software Engineer at a Series B startup (~150 people). Five years in, three at current company. Backend-leaning full-stack — Python and Go daily, currently leading a Postgres-to-distributed-storage migration. Reads Hacker News in the morning, Pragmatic Engineer on weekends. Vaguely thinking about leaving for a smaller team or starting something herself in 2 years.
+
+    Lives in the Mission. Runs 4x/week, training for the SF Marathon. Member of a local run club. Hot yoga twice a week at a studio nearby. Climbs at Mission Cliffs on weekends. Mostly cooks — Whole Foods plus farmers' market on Saturdays. Eats out 2x/week at places with real vegetable programs (Souvla, Reem's, Nopa). Doesn't drink much; will go to a natural wine bar with friends. Sober-curious adjacent, interested in NA cocktails.
+
+    Cultural taste: indie and electronic — Bon Iver, Caribou, Floating Points, Mitski. Catches small shows at The Independent, The Chapel, Great American. Avoids arena tours. Watches A24 movies. Genuinely interested in AI/ML developments but skeptical of hype cycles, occasionally reads papers. Goes to maybe one tech meetup a month — picks them carefully, hates recruiting-bait events.
+
+    Civic life: watches SF politics closely — housing policy, public transit, Prop measures. Concerned about Mission gentrification, BART funding, street safety. She votes and reads the voter guide.
+    """
 
     enum Phase { case input, loading, reveal }
 
