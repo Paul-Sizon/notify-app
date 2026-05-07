@@ -15,9 +15,6 @@ Tell it what you care about. It watches the open web on a schedule, extracts onl
 https://github.com/user-attachments/assets/05757784-e35f-4056-ba32-4624f31471ec
 
 
-
-> To embed an inline player on GitHub, drag-drop `ios-demo.mp4` into a GitHub issue or PR comment, copy the resulting `https://github.com/user-attachments/...` URL, then replace the line above with `<video src="<that-url>" controls></video>`. GitHub only renders `<video>` from its own asset host, not from repo-relative paths.
-
 ## Why
 
 > **Q:** Can't I use X, Instagram, TikTok, any FYP page, or email to get news?
