@@ -359,7 +359,12 @@
       "Bash(./gradlew :composeApp:run)",
       "Bash(./gradlew :composeApp:dependencies --configuration jvmRuntimeClasspath)",
       "Bash(./gradlew :composeApp:dependencyInsight --configuration jvmRuntimeClasspath --dependency kotlinx-datetime)",
-      "Bash(./gradlew :composeApp:packageDmg *)"
+      "Bash(./gradlew :composeApp:packageDmg *)",
+      "Bash(~/Library/Android/sdk/emulator/emulator *)",
+      "Bash(./gradlew :composeApp:installDebug)",
+      "Bash(mkdir -p ~/.secrets/notify)",
+      "Bash(mv /Users/paulsizon/development/notify/iosApp/AuthKey_MB8HF25B9W.p8 ~/.secrets/notify/)",
+      "Bash(chmod 600 ~/.secrets/notify/AuthKey_MB8HF25B9W.p8)"
     ]
   },
   "enableAllProjectMcpServers": true,

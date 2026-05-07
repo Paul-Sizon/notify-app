@@ -42,7 +42,12 @@ final class AppState {
 
     func bootstrap() async {
         do {
-            try await api.bootstrapDevice()
+            // Block briefly for APNs to deliver a real device token. Falls
+            // back to a placeholder on timeout so the simulator and
+            // permission-denied users still get a usable app — pushes just
+            // won't deliver to those installs.
+            let token = await PushService.shared.awaitToken(timeout: 5)
+            try await api.bootstrapDevice(apnsToken: token)
             await refresh()
         } catch {
             lastError = "bootstrap: \(error.localizedDescription)"
@@ -109,7 +114,9 @@ final class AppState {
     }
 
     /// Trigger an agent run — backend executes search → extract → insert,
-    /// returns count of new signals. Newly arrived signals get mock pushes.
+    /// returns count of new signals. The server delivers APNs pushes for any
+    /// new signals via the device's stored token; the client only needs to
+    /// refresh local state.
     func run(_ sub: Subscription) async {
         liveAgentSubId = sub.id
         do {
@@ -117,18 +124,7 @@ final class AppState {
             let sigs = try await api.listSignals(subscriptionId: sub.id, limit: 30)
             let newOnes = sigs.filter { !seenSignalIds.contains($0.id) }
             signalsBySub[sub.id] = sigs
-            for s in newOnes {
-                seenSignalIds.insert(s.id)
-                if let err = await MockPush.shared.deliver(
-                    title: sub.query,
-                    body: s.title,
-                    subscriptionId: sub.id,
-                    signalId: s.id
-                ) {
-                    lastError = err
-                }
-            }
-            // give the visualizer a beat before dismissing
+            for s in newOnes { seenSignalIds.insert(s.id) }
             try? await Task.sleep(nanoseconds: 600_000_000)
             liveAgentSubId = nil
             if !newOnes.isEmpty { Haptics.success() } else { Haptics.tap() }

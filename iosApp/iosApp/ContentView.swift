@@ -58,10 +58,11 @@ struct ContentView: View {
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: state.liveAgentSubId)
         .task {
-            MockPush.shared.bootstrap()
-            // Permission ask runs concurrent — don't block backend bootstrap
-            // on user tapping Allow (especially when device is unattended).
-            Task.detached { _ = await MockPush.shared.requestAuthorization() }
+            PushService.shared.bootstrap()
+            // Kick the permission prompt + APNs registration concurrently.
+            // `state.bootstrap()` will await the token (with timeout) so the
+            // first /v1/devices call ships a real APNs token.
+            Task { _ = await PushService.shared.requestAuthorization() }
             await state.bootstrap()
             // Existing-user hack (spec §5): if the user already has watchers,
             // they pre-date the onboarding feature — don't drop them into the

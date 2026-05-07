@@ -32,11 +32,14 @@ final class ApiService {
     }
 
     /// Ensures `deviceId` is set — registers a fresh device if cold start.
-    /// `apnsToken` is a placeholder for the mocked-push build; pass any
-    /// stable string. The Go backend validates it's non-empty.
-    func bootstrapDevice(mockToken: String = "ios-mock-\(UUID().uuidString)") async throws {
+    /// Pass the hex APNs device token from `PushService.awaitToken()`. If nil
+    /// (sim, perms denied, no network), falls back to a placeholder so the
+    /// app remains usable; pushes won't deliver until the user re-launches
+    /// with a real token available.
+    func bootstrapDevice(apnsToken: String?) async throws {
         if deviceId != nil { return }
-        let id = try await client.registerDevice(apnsToken: mockToken)
+        let token = apnsToken ?? "ios-no-apns-\(UUID().uuidString)"
+        let id = try await client.registerDevice(apnsToken: token)
         self.deviceId = id
     }
 

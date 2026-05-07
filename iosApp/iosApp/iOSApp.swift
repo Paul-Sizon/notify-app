@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct iOSApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var showSplash = true
 
     init() {
@@ -13,6 +14,14 @@ struct iOSApp: App {
             UserDefaults.standard.removeObject(forKey: "notify.deviceId")
             UserDefaults.standard.removeObject(forKey: "onboarding_completed_v1")
             UserDefaults.standard.set(true, forKey: migrated)
+        }
+
+        // One-shot migration: drop deviceId registered with mock APNs token
+        // so the next bootstrap registers with a real token from APNs.
+        let apnsMigrated = "notify.migrated_to_apns_v1"
+        if !UserDefaults.standard.bool(forKey: apnsMigrated) {
+            UserDefaults.standard.removeObject(forKey: "notify.deviceId")
+            UserDefaults.standard.set(true, forKey: apnsMigrated)
         }
 
         UINavigationBar.appearance().barTintColor = UIColor(Theme.bg)

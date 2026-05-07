@@ -1,8 +1,9 @@
 import SwiftUI
+import UserNotifications
 
 /// Settings tab — device identity, agent stats, debug actions.
-/// In the mocked-push build, the "Send test notification" row demonstrates
-/// the lockscreen banner without an APNs round-trip.
+/// "Send test notification" schedules a local `UNNotificationRequest` to
+/// verify the banner UI and permission state without an APNs round-trip.
 struct AccountView: View {
     @Environment(AppState.self) private var state
     @State private var showingResetConfirm = false
@@ -86,24 +87,11 @@ struct AccountView: View {
             settingsGroup("Notifications") {
                 row("Send test notification", icon: "bell.badge", accent: true) {
                     Haptics.tapMedium()
-                    Task {
-                        let err = await MockPush.shared.deliver(
-                            title: "Test alert",
-                            body: "If you can see this, mocked push works.",
-                            subscriptionId: "debug",
-                            signalId: "debug-\(Date().timeIntervalSince1970)",
-                            delay: 0.6
-                        )
-                        if let err {
-                            state.lastError = err
-                        } else {
-                            state.toast = "Test notification scheduled — leave foreground or wait."
-                        }
-                    }
+                    Task { await scheduleLocalTestNotification(state: state) }
                 }
                 row("Request permission again", icon: "lock.shield") {
                     Task {
-                        let granted = await MockPush.shared.requestAuthorization()
+                        let granted = await PushService.shared.requestAuthorization()
                         state.toast = granted ? "Notifications authorized." : "Permission denied — open Settings."
                     }
                 }
@@ -157,5 +145,36 @@ struct AccountView: View {
             .background(Theme.surface)
         }
         .buttonStyle(.plain)
+    }
+}
+
+@MainActor
+private func scheduleLocalTestNotification(state: AppState) async {
+    let center = UNUserNotificationCenter.current()
+    let settings = await center.notificationSettings()
+    switch settings.authorizationStatus {
+    case .denied:
+        state.lastError = "Notifications denied — enable in Settings → notify."
+        return
+    case .notDetermined:
+        let granted = (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+        if !granted { state.lastError = "Permission not granted."; return }
+    case .authorized, .provisional, .ephemeral:
+        break
+    @unknown default:
+        state.lastError = "Unknown permission state."
+        return
+    }
+    let content = UNMutableNotificationContent()
+    content.title = "Test alert"
+    content.body = "If you can see this, local notifications work."
+    content.sound = .default
+    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.6, repeats: false)
+    let req = UNNotificationRequest(identifier: "test-\(UUID().uuidString)", content: content, trigger: trigger)
+    do {
+        try await center.add(req)
+        state.toast = "Test notification scheduled — leave foreground or wait."
+    } catch {
+        state.lastError = "Schedule failed: \(error.localizedDescription)"
     }
 }
