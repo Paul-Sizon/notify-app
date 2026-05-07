@@ -372,7 +372,15 @@
       "Bash(./gradlew --stop)",
       "Bash(java -version)",
       "Bash(/usr/libexec/java_home -V)",
-      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS,name=Herophone' build)"
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS,name=Herophone' build)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -archivePath /Users/paulsizon/development/notify/iosApp/build/archive/notify.xcarchive archive)",
+      "Bash(xcodebuild -exportArchive -archivePath build/archive/notify.xcarchive -exportPath build/export -exportOptionsPlist build/ExportOptions.plist)",
+      "Bash(mkdir -p ~/.appstoreconnect/private_keys)",
+      "Bash(cp ~/.secrets/notify/AuthKey_7PB834U9CL.p8 ~/.appstoreconnect/private_keys/)",
+      "Bash(chmod 600 ~/.appstoreconnect/private_keys/AuthKey_7PB834U9CL.p8)",
+      "Bash(xcodebuild -exportArchive -archivePath build/archive/notify.xcarchive -exportPath build/export -exportOptionsPlist build/ExportOptions.plist -authenticationKeyPath ~/.secrets/notify/AuthKey_7PB834U9CL.p8 -authenticationKeyID 7PB834U9CL -authenticationKeyIssuerID 0996a230-b842-42f2-8294-8e18b2338a8f)",
+      "Bash(xcodebuild -exportArchive -archivePath build/archive/notify.xcarchive -exportPath build/export -exportOptionsPlist build/ExportOptions.plist -allowProvisioningUpdates -authenticationKeyPath ~/.secrets/notify/AuthKey_7PB834U9CL.p8 -authenticationKeyID 7PB834U9CL -authenticationKeyIssuerID 0996a230-b842-42f2-8294-8e18b2338a8f)"
     ]
   },
   "enableAllProjectMcpServers": true,
