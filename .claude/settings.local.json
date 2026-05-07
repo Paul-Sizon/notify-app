@@ -364,7 +364,15 @@
       "Bash(./gradlew :composeApp:installDebug)",
       "Bash(mkdir -p ~/.secrets/notify)",
       "Bash(mv /Users/paulsizon/development/notify/iosApp/AuthKey_MB8HF25B9W.p8 ~/.secrets/notify/)",
-      "Bash(chmod 600 ~/.secrets/notify/AuthKey_MB8HF25B9W.p8)"
+      "Bash(chmod 600 ~/.secrets/notify/AuthKey_MB8HF25B9W.p8)",
+      "Bash(./gradlew :shared:embedAndSignAppleFrameworkForXcode)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' build)",
+      "Bash(xcodebuild -project /Users/paulsizon/development/notify/iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS,name=Herophone' build)",
+      "Bash(./gradlew --stop)",
+      "Bash(java -version)",
+      "Bash(/usr/libexec/java_home -V)",
+      "Bash(xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'platform=iOS,name=Herophone' build)"
     ]
   },
   "enableAllProjectMcpServers": true,

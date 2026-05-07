@@ -7,9 +7,15 @@ import SwiftUI
 /// `@Observable` (Swift 5.9+) re-renders only views that read each property —
 /// no manual `@Published` boilerplate. `Set<String>` of seen signal IDs lets
 /// us detect newly-arrived signals on each run and trigger mock pushes.
-/// Backend URL — hardcoded, served from the Pi via Tailscale Funnel.
+/// Backend URL — Pi via Tailscale Funnel in Release. Debug builds hit the
+/// Mac on the local network so iPhone-on-same-wifi can dev/test against
+/// `make run` without going over the internet.
 enum BackendURL {
+    #if DEBUG
+    static let url = "http://192.168.89.89:8080"
+    #else
     static let url = "https://raspberrypi.taile76757.ts.net"
+    #endif
 }
 
 @Observable

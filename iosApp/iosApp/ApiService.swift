@@ -35,8 +35,10 @@ final class ApiService {
     /// Pass the hex APNs device token from `PushService.awaitToken()`. If nil
     /// (sim, perms denied, no network), falls back to a placeholder so the
     /// app remains usable; pushes won't deliver until the user re-launches
-    /// with a real token available.
-    func bootstrapDevice(apnsToken: String?) async throws {
+    /// with a real token available. Idempotent: returns early if `deviceId`
+    /// already set, so callers downstream of `AppState.bootstrap()` can pass
+    /// nil safely.
+    func bootstrapDevice(apnsToken: String? = nil) async throws {
         if deviceId != nil { return }
         let token = apnsToken ?? "ios-no-apns-\(UUID().uuidString)"
         let id = try await client.registerDevice(apnsToken: token)
