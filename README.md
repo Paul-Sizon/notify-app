@@ -10,7 +10,11 @@ Tell it what you care about. It watches the open web on a schedule, extracts onl
 
 ## Demo
 
-[Download demo (mp4)](./ios-demo.mp4)
+
+
+https://github.com/user-attachments/assets/05757784-e35f-4056-ba32-4624f31471ec
+
+
 
 > To embed an inline player on GitHub, drag-drop `ios-demo.mp4` into a GitHub issue or PR comment, copy the resulting `https://github.com/user-attachments/...` URL, then replace the line above with `<video src="<that-url>" controls></video>`. GitHub only renders `<video>` from its own asset host, not from repo-relative paths.
 
@@ -37,7 +41,8 @@ Stuff that may not get to your FYP page.
    - Fingerprint dedup vs. prior signals for that subscription.
 3. New signals trigger a push notification to your device.
 
-![Signal detail](./q01-coldplay-detail.png)
+<img width="301" height="655" alt="q01-coldplay-detail" src="https://github.com/user-attachments/assets/533a34cc-4aec-48ee-8bd5-3df23bdd6cf9" />
+
 
 ## Repo layout
 
@@ -66,10 +71,10 @@ Required env: `DATABASE_URL`, `OPENAI_API_KEY`, `BRAVE_SEARCH_API_KEY`. APNs var
 
 | Target | Command |
 |---|---|
+| iOS | open `iosApp/` in Xcode, run |
 | Android | `./gradlew :composeApp:assembleDebug` |
 | Desktop | `./gradlew :composeApp:run` |
 | Web | `./gradlew :shared:jsBrowserDevelopmentLibraryDistribution && npm install && npm run start` |
-| iOS | open `iosApp/` in Xcode, run |
 
 ## API
 
