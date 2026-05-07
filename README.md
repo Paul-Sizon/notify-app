@@ -2,7 +2,7 @@
 
 **Using agents to improve signal-to-noise ratio.**
 
-Cross-platform client — **iOS, Android, Desktop (macOS/Windows/Linux), Web** — backed by a Go agent server.
+Cross-platform client (**iOS, Android, Desktop, Web**) backed by a Go agent server.
 
 Tell it what you care about. It watches the open web on a schedule, extracts only matching signals, dedupes, and pushes a notification when something new appears.
 
@@ -10,15 +10,15 @@ Tell it what you care about. It watches the open web on a schedule, extracts onl
 
 ## Demo
 
-<video src="./ios-demo.mov" controls width="320"></video>
+[Download demo (mp4)](./ios-demo.mp4)
 
-[Download demo video](./ios-demo.mov)
+> To embed an inline player on GitHub, drag-drop `ios-demo.mp4` into a GitHub issue or PR comment, copy the resulting `https://github.com/user-attachments/...` URL, then replace the line above with `<video src="<that-url>" controls></video>`. GitHub only renders `<video>` from its own asset host, not from repo-relative paths.
 
 ## Why
 
 > **Q:** Can't I use X, Instagram, TikTok, any FYP page, or email to get news?
 >
-> **A:** Yes — but those feeds are noisy, and they won't surface narrow topics unless you actively dig.
+> **A:** Yes, but those feeds are noisy, and they won't surface narrow topics unless you actively dig.
 
 ### Example: specialized news for an international SaaS
 
@@ -30,12 +30,12 @@ Stuff that may not get to your FYP page.
 
 ## How it works
 
-1. Create a **subscription** — natural-language query + cadence (≥5 min) + type (`event` or `news`).
+1. Create a **subscription**: natural-language query, cadence (≥5 min), and type (`event` or `news`).
 2. Server agent runs on schedule:
    - Brave Web Search pulls top results (title, URL, snippet, page_age).
-   - OpenAI structured extraction filters → matching signals only.
+   - OpenAI structured extraction filters to matching signals only.
    - Fingerprint dedup vs. prior signals for that subscription.
-3. New signals → push notification to your device.
+3. New signals trigger a push notification to your device.
 
 ![Signal detail](./q01-coldplay-detail.png)
 
@@ -43,8 +43,8 @@ Stuff that may not get to your FYP page.
 
 | Path | What |
 |---|---|
-| `server/` | Go backend — agent, API, scheduler, APNs. See [`server/README.md`](./server/README.md). |
-| `composeApp/` | Kotlin Multiplatform UI — Android + Desktop (JVM) from shared Compose source. |
+| `server/` | Go backend: agent, API, scheduler, APNs. See [`server/README.md`](./server/README.md). |
+| `composeApp/` | Kotlin Multiplatform UI: Android + Desktop (JVM) from shared Compose source. |
 | `iosApp/` | SwiftUI host for iOS, calls into `shared`. |
 | `webApp/` | React + Kotlin/JS web client. |
 | `shared/` | KMP shared module (models, networking). |
@@ -60,7 +60,7 @@ make up && make migrate
 make run
 ```
 
-Required env: `DATABASE_URL`, `OPENAI_API_KEY`, `BRAVE_SEARCH_API_KEY`. APNs vars optional — without them the server logs notifications to stdout.
+Required env: `DATABASE_URL`, `OPENAI_API_KEY`, `BRAVE_SEARCH_API_KEY`. APNs vars optional; without them the server logs notifications to stdout.
 
 ### Clients
 
